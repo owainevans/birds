@@ -31,9 +31,20 @@ def run(y):
     #r.infer('(slice hypers one %d)' % num_features)
     r.infer('(mh hypers one %d)' % 5 * (1 + num_features))
 
-  history, _ = onebird.runFromConditional(D, runs=runs, infer=sweep, verbose=True)
+  history, ripl = onebird.runFromConditional(D, runs=runs, infer=sweep, verbose=True)
   history.hypers = [avgFinalValue(history, 'hypers%d' % k) for k in range(num_features)]
-  history.save(directory="%s/%d" % (name, y))
+  #history.save(directory="%s/%d" % (name, y))
+
+  return history,ripl
+
+
+
+def singleYear(Y=0):
+  h,r = run(Y)
+  h.hypers = [avgFinalValue(h, 'hypers%d' % k) for k in range(num_features)]
+  h.save(directory="%s/owain/%d" % (name, Y))
+  return h,r
+
 
 
 def runInParallel():
@@ -65,8 +76,3 @@ def runInParallel():
 
 
 
-def singleYear(Y=0):
-  h,r = run(Y)
-  h.hypers = [avgFinalValue(h, 'hypers%d' % k) for k in range(num_features)]
-  h.save(directory="%s/owain/%d" % (name, Y))
-  return h,r
