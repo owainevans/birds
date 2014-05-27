@@ -135,7 +135,7 @@ def priorSamples(runs=2):
 def posteriorSamples(runs=10,iterations=5,transitions=1000):
   #cli = Client()
   #dview = cli[:]
-  infoString='PosteriorSamples: runs=%i,iterations=%i,transitions=%i, time=%.2f\n'%(runs, iterations,
+  infoString='PosteriorSamples: runs=%i,iterations=%i,transitions=%i, time=%.3f\n'%(runs, iterations,
                                                                                   transitions,time.time())
   with open('posteriorAppend.data','a') as f:
       f.write(infoString)
