@@ -5,6 +5,8 @@ ripl = s.make_puma_church_prime_ripl()
 
 from utils import *
 from model import Poisson, num_features
+from IPython.parallel import Client
+from IPython.parallel.util import interactive
 
 width = 10
 height = 10
@@ -134,10 +136,14 @@ def priorSamples(runs=2):
 
   return priorLogs
 
-def posteriorSamples(runs=1):
+
+def posteriorSamples(runs=10,iterations=5,transitions=1000):
+  #cli = Client()
+  #dview = cli[:]
+  
   posteriorLogs = []
   for run_i in range(runs):
-    logs,_ = run(iterations=5,transitions=1000)  # scores for each day before inference
+    logs,_ = run(iterations=iterations,transitions=transitions)  # scores for each day before inference
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
   
   with open('posteriorRuns.data', 'w') as f:
