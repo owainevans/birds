@@ -135,16 +135,20 @@ def priorSamples(runs=2):
 def posteriorSamples(runs=10,iterations=5,transitions=1000):
   #cli = Client()
   #dview = cli[:]
+  infoString='PosteriorSamples: runs=%i,iterations=%i,transitions=%i, time=%.3f\n'%(runs, iterations,
+                                                                                  transitions,time.time())
+  with open('posteriorAppend.data','a') as f:
+      f.write(infoString)
   
   posteriorLogs = []
   for run_i in range(runs):
     logs,_ = run(iterations=iterations,transitions=transitions)  # scores for each day before inference
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
     with open('posteriorAppend.data','a') as f:
-      f.write('\n'+str(run_i)+'\n logs:'+str(logs))
+      f.write('\n'+str(run_i)+'\n logs:\n'+str(logs))
   
   with open('posteriorRuns.data', 'w') as f:
-    f.write(str(posteriorLogs) )
+    f.write(infoString + str(posteriorLogs) )
 
   return posteriorLogs
 
