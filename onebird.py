@@ -35,6 +35,7 @@ def run(y):
   history.hypers = [avgFinalValue(history, 'hypers%d' % k) for k in range(num_features)]
   history.save(directory="%s/%d" % (name, y))
 
+
 def runInParallel():
   from multiprocessing import Process
 
@@ -59,4 +60,13 @@ def runInParallel():
   hypers = [np.average([h.hypers[i] for h in histories]) for i in range(num_features)]
   print hypers
 
-runInParallel()
+
+#runInParallel()
+
+
+
+def singleYear(Y=0):
+  h,r = run(Y)
+  h.hypers = [avgFinalValue(h, 'hypers%d' % k) for k in range(num_features)]
+  h.save(directory="%s/owain/%d" % (name, Y))
+  return h,r
