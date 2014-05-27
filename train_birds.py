@@ -72,7 +72,7 @@ def sweep(r, *args):
   print "pgibbs: %f, mh: %f" % (t1-t0, t2-t1)
 
 
-def run(pgibbs=True):
+def run(pgibbs=True, iterations=5, transitions=1000):
   print "Starting run"
   ripl.clear()
   model.loadAssumes()
@@ -103,8 +103,8 @@ def run(pgibbs=True):
     model.updateObserves(d)  # self.days.append(d)
     log()
     
-    for i in range(3): # iterate inference (could reduce from 5)
-      ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*100})
+    for i in range(iterations): # iterate inference (could reduce from 5)
+      ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
       log()
       continue
       bird_locs = model.getBirdLocations(days=[d])
@@ -120,7 +120,18 @@ def run(pgibbs=True):
 
 
 def runner():
+
   logs,model = run()
+  return logs,model
+
+
+def priorSamples():
+  priorLogs = []
+  runs = 5
+  for run_i in range(runs):
+    logs,_ = run(iterations=0)  # scores for each day before inference
+    priorLogs.append( logs ) # list of logs for iid draws from prior
+  return priorLogs
 
 
 
