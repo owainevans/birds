@@ -71,11 +71,15 @@ def sweep(r, *args):
   
   print "pgibbs: %f, mh: %f" % (t1-t0, t2-t1)
 
+
 def run(pgibbs=True):
   print "Starting run"
   ripl.clear()
   model.loadAssumes()
   model.updateObserves(0)
+  print 'model.ripl and ripl after loadassumes:'
+  print 'model.ripl.list_dir[0]',model.ripl.list_directives()[0]
+  print 'ripl.list_dir[0]',ripl.list_directives()[0]
 
   #model.loadObserves()
   #ripl.infer('(incorporate)')
@@ -93,27 +97,30 @@ def run(pgibbs=True):
     print logs[-1]
     t[0] += dt
   
+
   for d in range(1, D):
     print "Day %d" % d
-    model.updateObserves(d)
+    model.updateObserves(d)  # self.days.append(d)
     log()
     
-    for i in range(5):
-      ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*1000})
+    for i in range(3): # iterate inference (could reduce from 5)
+      ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*100})
       log()
       continue
       bird_locs = model.getBirdLocations(days=[d])
       
-      for y in range(Y):
+      for y in range(Y):  # save data for each year
         path = 'bird_moves%d/%d/%02d/' % (dataset, y, d)
         ensure(path)
         drawBirds(bird_locs[y][d], path + '%02d.png' % i, **params)
   
   model.drawBirdLocations()
-  
-  return logs
 
-history = None
-if __name__ == "__main__":
-  history = run()
+  return logs, model
+
+
+def runner():
+  logs,model = run()
+
+
 
