@@ -77,9 +77,6 @@ def run(pgibbs=True, iterations=5, transitions=1000):
   ripl.clear()
   model.loadAssumes()
   model.updateObserves(0)
-  print 'model.ripl and ripl after loadassumes:'
-  print 'model.ripl.list_dir[0]',model.ripl.list_directives()[0]
-  print 'ripl.list_dir[0]',ripl.list_directives()[0]
 
   #model.loadObserves()
   #ripl.infer('(incorporate)')
@@ -125,13 +122,28 @@ def runner():
   return logs,model
 
 
-def priorSamples():
+def priorSamples(runs=2):
   priorLogs = []
-  runs = 5
+  runs = 2
   for run_i in range(runs):
     logs,_ = run(iterations=0)  # scores for each day before inference
     priorLogs.append( logs ) # list of logs for iid draws from prior
+
+  with open('priorRuns.data', 'w') as f:
+    f.write(str(priorLogs) )
+
   return priorLogs
 
+def posteriorSamples(runs=1):
+  posteriorLogs = []
+  for run_i in range(runs):
+    logs,_ = run(iterations=5,transitions=1000)  # scores for each day before inference
+    posteriorLogs.append( logs ) # list of logs for iid draws from prior
+  
+  with open('posteriorRuns.data', 'w') as f:
+    f.write(str(posteriorLogs) )
+
+
+  return posteriorLogs
 
 
