@@ -118,11 +118,6 @@ def run(pgibbs=True, iterations=5, transitions=1000):
   return logs, model
 
 
-def runner():
-
-  logs,model = run()
-  return logs,model
-
 
 def priorSamples(runs=2):
   priorLogs = []
@@ -145,11 +140,13 @@ def posteriorSamples(runs=10,iterations=5,transitions=1000):
   for run_i in range(runs):
     logs,_ = run(iterations=iterations,transitions=transitions)  # scores for each day before inference
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
+    with open('posteriorAppend.data','a') as f:
+      f.write('\n'+str(run_i)+'\n logs:'+str(logs))
   
   with open('posteriorRuns.data', 'w') as f:
     f.write(str(posteriorLogs) )
 
-
   return posteriorLogs
+
 
 
