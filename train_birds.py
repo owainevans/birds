@@ -81,7 +81,7 @@ def sweep(r, *args):
   print "pgibbs: %f, mh: %f" % (t1-t0, t2-t1)
 
 
-def run(pgibbs=True, iterations=5, transitions=1000):
+def run(pgibbs=True, iterations=5, transitions=1000,baseDirectory=None):
   print "Starting run"
   ripl.clear()
   model.loadAssumes()
