@@ -35,7 +35,14 @@ params = {
   "hypers":hypers,
 }
 
-model = Poisson(ripl, params)
+
+
+
+#model = Poisson(ripl, params)
+
+
+
+
 
 def loadFromPrior():
   model.loadAssumes()
@@ -122,10 +129,20 @@ def getMoves():
   logs,model = run(iterations=1,transitions=1000)
   bird_moves = model.getBirdMoves()
   
+
   bird_locs = model.getBirdLocations()
   return bird_moves,bird_locs
   
-
+def checkMoves(moves,no_days=5):
+  allMoves = {}
+  for day in range(no_days):
+    allMoves[day] = []
+    for i in range(100):
+      fromi = sum( [moves[(0,day,i,j)] for j in range(100)] )
+      allMoves[day].append(fromi)
+    print 'allMoves total for day %i: %i'%(day,sum(allMoves[day]))
+  
+  return allMoves
 
 def priorSamples(runs=4):
   priorLogs = []
