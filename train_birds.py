@@ -118,10 +118,18 @@ def run(pgibbs=True, iterations=5, transitions=1000):
   return logs, model
 
 
+def getMoves():
+  logs,model = run(iterations=1,transitions=1000)
+  bird_moves = model.getBirdMoves()
+  
+  bird_locs = model.getBirdLocations()
+  return bird_moves,bird_locs
+  
 
-def priorSamples(runs=2):
+
+def priorSamples(runs=4):
   priorLogs = []
-  runs = 2
+                                                                                  
   for run_i in range(runs):
     logs,_ = run(iterations=0)  # scores for each day before inference
     priorLogs.append( logs ) # list of logs for iid draws from prior
