@@ -1,5 +1,4 @@
 import time
-
 import venture.shortcuts as s
 ripl = s.make_puma_church_prime_ripl()
 
@@ -16,12 +15,11 @@ dataset = 2
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 6
+D = 10 # CHANGE TO 10 from 6
 
 runs = 1
 
-# these are ground truths
-hypers = [5, 10, 10, 10]
+hypers = [5, 10, 10, 10] # these are ground truths
 
 params = {
   "name":name,
@@ -35,10 +33,105 @@ params = {
   "hypers":hypers,
 }
 
+def makePoisson():
+  model = Poisson(ripl, params)
+  return model
+
+model = Poisson(ripl, params)
+
+def run(model,iterations=5, transitions=1000, baseDirectory=None):
+  print "Starting run"
+  ripl.clear()
+  model.loadAssumes()
+  model.updateObserves(0)
+
+  #model.loadObserves()
+  #ripl.infer('(incorporate)') #print "Loading observations"
+  #for (y, d, i, n) in observes:
+  #  ripl.observe('(observe_birds %d %d %d)' % (y, d, i), n)
+  
+  logs = []
+  t = [time.time()] 
+  
+  def log():
+    dt = time.time() - t[0]
+    logs.append((ripl.get_global_logscore(),
+                 model.computeScoreDay(model.days[-2]), dt))
+    print logs[-1]
+    t[0] += dt
+
+  for d in range(1, D):
+    print "Day %d" % d
+    model.updateObserves(d)  # self.days.append(d)
+    log()
+    
+    for i in range(iterations): # iterate inference (could reduce from 5)
+      ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
+      log()
+      continue
+      bird_locs = model.getBirdLocations(days=[d])
+      
+      for y in range(Y):  # save data for each year
+        path = baseDirectory+'/bird_moves%d/%d/%02d/' % (dataset, y, d)
+        ensure(path)
+        drawBirds(bird_locs[y][d], path + '%02d.png' % i, **params)
+  
+  model.drawBirdLocations()
+
+  return logs, model
 
 
 
-#model = Poisson(ripl, params)
+def priorSamples(runs=4):
+  priorLogs = []
+  
+  for run_i in range(runs):
+    logs,_ = run(iterations=0)  # scores for each day before inference
+    priorLogs.append( logs ) # list of logs for iid draws from prior
+
+  with open('priorRuns.data', 'w') as f:
+    f.write(str(priorLogs) )
+
+  return priorLogs
+
+
+def posteriorSamples(runs=10,iterations=5,transitions=1000):
+
+  infoString='\n\n\n New Job: PosteriorSamples: runs=%i,iterations=%i,transitions=%i, time=%.3f\n'%(runs, iterations, transitions,time.time())
+  with open('posteriorAppend.data','a') as f:
+    f.write(infoString)
+  
+  posteriorLogs = []
+  for run_i in range(runs):
+    # scores for each day before inference
+    logs,_ = run(iterations=iterations,transitions=transitions) 
+    posteriorLogs.append( logs ) # list of logs for iid draws from prior
+    with open('posteriorAppend.data','a') as f:
+      f.write('\n'+str(run_i)+'\n logs:\n'+str(logs))
+  
+  with open('posteriorRuns.data', 'w') as f:
+    f.write(infoString + str(posteriorLogs) )
+
+  return posteriorLogs
+
+
+def getMoves():
+  basedir = 'getMoves_'+str(np.random.randint(1000))
+  logs,model = run(iterations=1,transitions=1000,baseDirectory=basedir)
+  bird_moves = model.getBirdMoves()
+  bird_locs = model.getBirdLocations()
+  return logs,model,bird_moves,bird_locs
+  
+def checkMoves(moves,no_days=5):
+  allMoves = {}
+  for day in range(no_days):
+    allMoves[day] = []
+    for i in range(100):
+      fromi = sum( [moves[(0,day,i,j)] for j in range(100)] )
+      allMoves[day].append(fromi)
+    print 'allMoves total for day %i: %i'%(day,sum(allMoves[day]))
+  
+  return allMoves
 
 
 
@@ -79,102 +172,3 @@ def sweep(r, *args):
   t2 = time.time()
   
   print "pgibbs: %f, mh: %f" % (t1-t0, t2-t1)
-
-
-def run(pgibbs=True, iterations=5, transitions=1000,baseDirectory=None):
-  print "Starting run"
-  ripl.clear()
-  model.loadAssumes()
-  model.updateObserves(0)
-
-  #model.loadObserves()
-  #ripl.infer('(incorporate)')
-  
-  #print "Loading observations"
-  #for (y, d, i, n) in observes:
-  #  ripl.observe('(observe_birds %d %d %d)' % (y, d, i), n)
-  
-  logs = []
-  t = [time.time()] # python :(
-  
-  def log():
-    dt = time.time() - t[0]
-    logs.append((ripl.get_global_logscore(), model.computeScoreDay(model.days[-2]), dt))
-    print logs[-1]
-    t[0] += dt
-  
-
-  for d in range(1, D):
-    print "Day %d" % d
-    model.updateObserves(d)  # self.days.append(d)
-    log()
-    
-    for i in range(iterations): # iterate inference (could reduce from 5)
-      ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
-      log()
-      continue
-      bird_locs = model.getBirdLocations(days=[d])
-      
-      for y in range(Y):  # save data for each year
-        path = 'bird_moves%d/%d/%02d/' % (dataset, y, d)
-        ensure(path)
-        drawBirds(bird_locs[y][d], path + '%02d.png' % i, **params)
-  
-  model.drawBirdLocations()
-
-  return logs, model
-
-
-def getMoves():
-  logs,model = run(iterations=1,transitions=1000)
-  bird_moves = model.getBirdMoves()
-  
-
-  bird_locs = model.getBirdLocations()
-  return bird_moves,bird_locs
-  
-def checkMoves(moves,no_days=5):
-  allMoves = {}
-  for day in range(no_days):
-    allMoves[day] = []
-    for i in range(100):
-      fromi = sum( [moves[(0,day,i,j)] for j in range(100)] )
-      allMoves[day].append(fromi)
-    print 'allMoves total for day %i: %i'%(day,sum(allMoves[day]))
-  
-  return allMoves
-
-def priorSamples(runs=4):
-  priorLogs = []
-                                                                                  
-  for run_i in range(runs):
-    logs,_ = run(iterations=0)  # scores for each day before inference
-    priorLogs.append( logs ) # list of logs for iid draws from prior
-
-  with open('priorRuns.data', 'w') as f:
-    f.write(str(priorLogs) )
-
-  return priorLogs
-
-
-def posteriorSamples(runs=10,iterations=5,transitions=1000):
-  #cli = Client()
-  #dview = cli[:]
-  infoString='\n\n\n New Job: PosteriorSamples: runs=%i,iterations=%i,transitions=%i, time=%.3f\n'%(runs, iterations, transitions,time.time())
-  with open('posteriorAppend.data','a') as f:
-    f.write(infoString)
-  
-  posteriorLogs = []
-  for run_i in range(runs):
-    logs,_ = run(iterations=iterations,transitions=transitions)  # scores for each day before inference
-    posteriorLogs.append( logs ) # list of logs for iid draws from prior
-    with open('posteriorAppend.data','a') as f:
-      f.write('\n'+str(run_i)+'\n logs:\n'+str(logs))
-  
-  with open('posteriorRuns.data', 'w') as f:
-    f.write(infoString + str(posteriorLogs) )
-
-  return posteriorLogs
-
-
-

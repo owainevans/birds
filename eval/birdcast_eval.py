@@ -403,4 +403,4 @@ def main():
     print('Generated evaluation report: ' + result_path +'.csv')
 
 if __name__ == '__main__':
-    main()
+   main()

@@ -22,3 +22,8 @@ for run in priorRuns:
     ar = np.array(run)
     priorRunsMeans.append( np.mean(ar,axis=0) )
     # will give the means for logscore, L2 and time
+
+
+
+
+# collect samples
