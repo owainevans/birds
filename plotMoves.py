@@ -1,6 +1,7 @@
 from utils import *
 from train_birds import *
 import matplotlib.pylab as plt
+import numpy as np
 
 def plotMoves(baseDirectory=''):
     fileName = baseDirectory + 'moves.dat'
@@ -26,14 +27,16 @@ def plotMoves(baseDirectory=''):
 
 
 def plotSamples(baseDirectory,noIters=1):
-    execfile(baseDirectory+'posteriorRunsDump.py')
-    runs= posteriorLogs
+    fileName = baseDirectory+'posteriorRunsDump.py'
+    with open(fileName,'r') as f:
+        fString = f.read()
+    runs = eval( fString[ fString.rfind('=')+1: ] )
     
     allSamples=[]; priorTriples=[]
     
     for run in runs:
         for i,triple in enumerate(run):
-            if not mod(i,noIters+1)==0:
+            if not np.mod(i,noIters+1)==0:
                 allSamples.append(triple)
             else:
                 priorTriples.append(triple)
@@ -41,14 +44,15 @@ def plotSamples(baseDirectory,noIters=1):
     allSamples=np.array(allSamples)
     logscores = allSamples[:,0]
     l2 = allSamples[:,1]
-
-    allPriorRuns = np.array(allPriorRuns)
+    
+    allPriorRuns = np.array(priorTriples)
     logscoresPrior = allPriorRuns[:,0]
     l2Prior = allPriorRuns[:,1]
 
     fig,ax = plt.subplots()
-    ax.hist(logscores,label='post'); ax.hist(logscoresPrior,label='prior')
+    ax.hist(logscores,label='log_post');
+    ax.hist(logscoresPrior,label='log_prior')
     ax.legend()
     fig,ax = plt.subplots()
-    ax.hist(l2,label='post'), ax.hist(l2Prior,label='prior'), 
+    ax.hist(l2,label='L2_post'), ax.hist(l2Prior,label='L2_prior'), 
     ax.legend()
