@@ -15,7 +15,7 @@ dataset = 3
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 6 # run inference on days 1 to (D-1)
+D = 10 # run inference on days 1 to (D-1)
 
 runs = 1
 
