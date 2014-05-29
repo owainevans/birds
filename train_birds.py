@@ -151,7 +151,10 @@ def checkMoves(moves,no_days=5):
     for i in range(100):
       fromi = sum( [moves[(0,day,i,j)] for j in range(100)] )
       allMoves[day].append(fromi)
-    print 'allMoves total for day %i: %i'%(day,sum(allMoves[day]))
+      
+    if day<6:
+      print 'allMoves total for day %i (up to 6): %i'%(day,
+                                                       sum(allMoves[day]))
   
   return allMoves
 
