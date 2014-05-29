@@ -88,7 +88,7 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
 
 
 
-def posteriorSamples( baseDirectory=None,
+def posteriorSamples(baseDirectory=None,
                      runs=10, iterations=5, transitions=1000):
   
   if baseDirectory is None:
@@ -112,9 +112,8 @@ def posteriorSamples( baseDirectory=None,
     with open(baseDirectory+'posteriorRuns.dat','a') as f:
       f.write('\n Run #:'+str(run_i)+'\n logs:\n'+str(logs))
   
-  # dump whole thing to a file
   with open('posteriorRunsDump.dat', 'w') as f:
-    f.write(infoString + str(posteriorLogs) )
+    f.write(infoString + str(posteriorLogs) ) # dump to file
 
   return posteriorLogs
 
@@ -131,7 +130,7 @@ def getMoves():
 
   ensure(basedir)
   with open(basedir+'moves.dat','w') as f:
-    f.write('moves='+bird_moves)
+    f.write('moves='+str(bird_moves))
 
   return logs,model,bird_moves,bird_locs
   
