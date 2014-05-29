@@ -129,6 +129,8 @@ def getMoves(days=5,transitions=1000,iterations=1,label=''):
   
   basedir = label + 'getMoves_'+str(np.random.randint(10**4))+'/'
   print 'getMoves basedir:', basedir
+  print 'days=%i,transitions=%i,iterations=%i'%(days,transitions,
+                                                iterations)
   kwargs = dict(runs=1, days=days, iterations=iterations,
                 transitions=transitions,baseDirectory=basedir)
   posteriorLogs,lastModel = posteriorSamples(**kwargs)
