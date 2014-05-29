@@ -106,8 +106,9 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
 
   for run_i in range(runs):
     
-    logs,_ = run(days=days,iterations=iterations,transitions=transitions,
-                 baseDirectory=baseDirectory)
+    logs,lastModel = run(days=days,iterations=iterations,
+                         transitions=transitions,
+                         baseDirectory=baseDirectory)
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
     
     with open(baseDirectory+'posteriorRuns.dat','a') as f:
@@ -116,7 +117,7 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
   with open('posteriorRunsDump.dat', 'w') as f:
     f.write(infoString + str(posteriorLogs) ) # dump to file
 
-  return posteriorLogs
+  return posteriorLogs,lastModel
 
 
 
@@ -125,7 +126,7 @@ def getMoves():
   print 'getMoves basedir:', basedir
   kwargs = dict(runs=1, days=2, iterations=1,
                 transitions=100,baseDirectory=basedir)
-  logs,model = posteriorSamples(**kwargs)
+  posteriorLogs,lastModel = posteriorSamples(**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
 
