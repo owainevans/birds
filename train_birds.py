@@ -40,8 +40,6 @@ def makePoisson():
 model = Poisson(ripl, params)
 
 def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
-  if days is not None:
-    D = days
   
   print "Starting run"
   ripl.clear()
@@ -62,8 +60,10 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
     print logs[-1]
     t[0] += dt
 
-  
-  for d in range(1, D):
+
+  daysRange = range(1,D) if days is None else range(1,days)
+    
+  for d in daysRange:
     print "Day %d" % d
     model.updateObserves(d)  # self.days.append(d)
     log()
