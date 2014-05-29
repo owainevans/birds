@@ -96,8 +96,8 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
   if baseDirectory is None:
     baseDirectory = 'posteriorSamples_'+str(np.random.randint(10**4))+'/'
 
-  infoString='''\n\n PosteriorSamples: runs=%i,iterations=%i,
-  transitions=%i, time=%.3f\n'''%(runs,iterations,transitions,time.time())
+  infoString='''PostSamples:runs=%i,iters=%i, transitions=%i,
+  time=%.3f\n'''%(runs,iterations,transitions,time.time())
 
   ensure(baseDirectory)
   with open(baseDirectory+'posteriorRuns.dat','a') as f:
@@ -116,8 +116,10 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
       f.write('\n Run #:'+str(run_i)+'\n logs:\n'+str(logs))
   
 
-  with open(baseDirectory+'posteriorRunsDump.dat', 'w') as f:
-    f.write(infoString + str(posteriorLogs) ) # dump to file
+  with open(baseDirectory+'posteriorRunsDump.py', 'w') as f:
+    info = 'info=%s'%infoSring
+    logs = 'logs=%s'%posteriorLogs
+    f.write(info+logs) # dump to file
 
   return posteriorLogs,lastModel
 
