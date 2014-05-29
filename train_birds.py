@@ -134,7 +134,7 @@ def getMoves():
   with open(basedir+'moves.dat','w') as f:
     f.write('moves='+str(bird_moves))
 
-  return logs,model,bird_moves,bird_locs
+  return posteriorLogs,model,bird_moves,bird_locs
   
 
 def checkMoves(moves,no_days=5):
