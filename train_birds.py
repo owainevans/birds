@@ -121,11 +121,11 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
 
 
 
-def getMoves():
+def getMoves(days=5):
   basedir = 'getMoves_'+str(np.random.randint(10**4))+'/'
   print 'getMoves basedir:', basedir
-  kwargs = dict(runs=1, days=2, iterations=1,
-                transitions=100,baseDirectory=basedir)
+  kwargs = dict(runs=1, days=days, iterations=1,
+                transitions=1000,baseDirectory=basedir)
   posteriorLogs,lastModel = posteriorSamples(**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
