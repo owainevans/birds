@@ -131,7 +131,7 @@ def posteriorSamples( baseDirectory=None,
 
 
 def getMoves():
-  basedir = 'getMoves_'+str(np.random.randint(10**4))
+  basedir = 'getMoves_'+str(np.random.randint(10**4))+'/'
   print 'getMoves basedir:', basedir
   kwargs = dict(days=2,iterations=1,transitions=100,baseDirectory=basedir)
   logs,model = run(**kwargs)
