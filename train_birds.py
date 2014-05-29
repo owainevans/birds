@@ -37,8 +37,9 @@ def makePoisson():
   model = Poisson(ripl, params)
   return model
 
+if __name__ == '__main__':
+  model = Poisson(ripl, params)
 
-model = Poisson(ripl, params)
 
 def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
   
@@ -99,7 +100,7 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
   transitions=%i, time=%.3f\n'''%(runs,iterations,transitions,time.time())
 
   ensure(baseDirectory)
-  with open(baseDirectory+'posteriorAppend.dat','a') as f:
+  with open(baseDirectory+'posteriorRuns.dat','a') as f:
     f.write(infoString)
   
   posteriorLogs = []
@@ -114,7 +115,8 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
     with open(baseDirectory+'posteriorRuns.dat','a') as f:
       f.write('\n Run #:'+str(run_i)+'\n logs:\n'+str(logs))
   
-  with open('posteriorRunsDump.dat', 'w') as f:
+
+  with open(baseDirectory+'posteriorRunsDump.dat', 'w') as f:
     f.write(infoString + str(posteriorLogs) ) # dump to file
 
   return posteriorLogs,lastModel
