@@ -28,9 +28,12 @@ def readFeatures(filename,maxYear=None,maxDay=None):
         break
 
     if maxDay and int(row[1])>maxDay:
-      print 'maxDay and stop point:',maxDay
-      print row
-      break
+      if maxYear==int(row[0]):
+        print 'maxDay,maxYear and stop point:',maxDay,maxYear
+        print row
+        break
+      else:
+        continue
       
     keys = tuple(int(k)-1 for k in row[:4])
     features = map(float, row[4:])

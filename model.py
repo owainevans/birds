@@ -6,8 +6,6 @@ from venture.ripl.ripl import _strip_types
 num_features = 4
 
 def loadFeatures(dataset, name, years, days,maxDay=None):
-  print 'loadFeatures args: name years days:', name,years,days
-
   
   features_file = "data/input/dataset%d/%s-features.csv" % (dataset, name)
   print "Loading features from %s" % features_file
