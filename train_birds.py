@@ -89,7 +89,6 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
 
 
 
-
 def posteriorSamples(runs=10,baseDirectory=None, days=None,
                       iterations=5, transitions=1000):
   
@@ -126,7 +125,7 @@ def getMoves():
   print 'getMoves basedir:', basedir
   kwargs = dict(runs=1, days=2, iterations=1,
                 transitions=100,baseDirectory=basedir)
-  logs,model = run(**kwargs)
+  logs,model = posteriorSamples(**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
 
