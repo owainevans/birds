@@ -49,10 +49,16 @@ def plotSamples(baseDirectory,noIters=1):
     logscoresPrior = allPriorRuns[:,0]
     l2Prior = allPriorRuns[:,1]
 
+    fig,ax = plt.subplots(2,1)
+    ax[0].hist(l2,label='L2_post')
+    ax[1].hist(l2Prior,label='L2_prior',color='green')
+    [ax[i].legend() for i in range(2)]
+
     fig,ax = plt.subplots()
-    ax.hist(logscores,label='log_post');
-    ax.hist(logscoresPrior,label='log_prior')
+    ax.hist(logscores,label='log_post',color='blue');
+    ax.hist(logscoresPrior,label='log_prior',color='green')
     ax.legend()
     fig,ax = plt.subplots()
-    ax.hist(l2,label='L2_post'), ax.hist(l2Prior,label='L2_prior'), 
+    ax.hist(l2,label='L2_post',color='blue')
+    ax.hist(l2Prior,label='L2_prior',color='green')
     ax.legend()
