@@ -118,14 +118,14 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
 
   with open(baseDirectory+'posteriorRunsDump.py', 'w') as f:
     info = 'info="""%s"""'%infoString
-    logs = 'logs=%s'%posteriorLogs
+    logs = '\n\nlogs=%s'%posteriorLogs
     f.write(info+logs) # dump to file
 
   return posteriorLogs,lastModel
 
 
 
-def getMoves(days=5):
+def getMoves(days=5,transitions=1000):
   basedir = 'getMoves_'+str(np.random.randint(10**4))+'/'
   print 'getMoves basedir:', basedir
   kwargs = dict(runs=1, days=days, iterations=1,
