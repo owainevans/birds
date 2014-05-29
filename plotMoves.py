@@ -1,9 +1,9 @@
 from utils import *
-from train_birds import *
+from train_birds import checkMoves
 import matplotlib.pylab as plt
 import numpy as np
 
-def plotMoves(baseDirectory=''):
+def plotMoves(baseDirectory='',dataset=2):
     fileName = baseDirectory + 'moves.dat'
     with open(fileName,'r') as f:
         fString = f.read()
@@ -13,6 +13,11 @@ def plotMoves(baseDirectory=''):
     allMoves = checkMoves(moves,no_days=no_days_run)
 
     no_days = 19
+    if dataset==2:
+        params = dict(days=[],dataset=2,total_birds=10**3)
+    else:
+        params = dict(days=[],dataset=3,total_birds=10**6)
+        
     params['days'] = range(no_days)
     ground_moves = readReconstruction(params)
     allMovesGround = checkMoves(ground_moves,no_days=no_days)

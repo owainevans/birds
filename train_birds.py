@@ -120,12 +120,11 @@ def posteriorSamples(runs=10, baseDirectory=None, days=None,
 
   with open(baseDirectory+'posteriorRunsDump.py', 'w') as f:
     info = 'info="""%s"""'%infoString
-    params = '\nparams=%s'%params
+    #params = '\nparams=%s'%params
     logs = '\n\nlogs=%s'%posteriorLogs
-    f.write(info+params+logs) # dump to file
+    f.write(info+logs) # dump to file
 
-  #with open((baseDirectory+'posteriorRunsDump.py', 'w') as f:
-
+    
   return posteriorLogs,lastModel
 
 
