@@ -37,6 +37,7 @@ def makePoisson():
   model = Poisson(ripl, params)
   return model
 
+
 model = Poisson(ripl, params)
 
 def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
@@ -78,6 +79,7 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
         path = baseDirectory+'/bird_moves%d/%d/%02d/' % (dataset, y, d)
         ensure(path)
         drawBirds(bird_locs[y][d], path + '%02d.png' % i, **params)
+        
   
   model.drawBirdLocations()
 
@@ -88,8 +90,8 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
 
 
 
-def posteriorSamples(baseDirectory=None,
-                     runs=10, iterations=5, transitions=1000):
+def posteriorSamples(runs=10,baseDirectory=None, days=None,
+                      iterations=5, transitions=1000):
   
   if baseDirectory is None:
     baseDirectory = 'posteriorSamples_'+str(np.random.randint(10**4))+'/'
@@ -105,8 +107,8 @@ def posteriorSamples(baseDirectory=None,
 
   for run_i in range(runs):
     
-    logs,_ = run(iterations=iterations,transitions=transitions,
-                 baseDirectory=baseDirectory) 
+    logs,_ = run(days=days,iterations=iterations,transitions=transitions,
+                 baseDirectory=baseDirectory)
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
     
     with open(baseDirectory+'posteriorRuns.dat','a') as f:
@@ -122,8 +124,8 @@ def posteriorSamples(baseDirectory=None,
 def getMoves():
   basedir = 'getMoves_'+str(np.random.randint(10**4))+'/'
   print 'getMoves basedir:', basedir
-  kwargs = dict(days=2,iterations=1,transitions=100,baseDirectory=basedir)
-  
+  kwargs = dict(runs=1, days=2, iterations=1,
+                transitions=100,baseDirectory=basedir)
   logs,model = run(**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
