@@ -5,13 +5,17 @@ from venture.ripl.ripl import _strip_types
 
 num_features = 4
 
-def loadFeatures(dataset, name, years, days):
+def loadFeatures(dataset, name, years, days,maxDay=None):
+  print 'loadFeatures args: name years days:', name,years,days
+
+  
   features_file = "data/input/dataset%d/%s-features.csv" % (dataset, name)
   print "Loading features from %s" % features_file
-  features = readFeatures(features_file)
+  
+  features = readFeatures(features_file, maxYear=max(years)+1,maxDay=maxDay)
   
   for (y, d, i, j) in features.keys():
-    if y not in years:
+    if y not in years:# or d not in days:
       del features[(y, d, i, j)]
   
   return toVenture(features)
@@ -141,7 +145,13 @@ class Poisson(VentureUnit):
     self.days = params['days']
     self.hypers = params["hypers"]
     self.ground = readReconstruction(params)
-    self.features = loadFeatures(self.dataset, self.name, self.years, self.days)
+
+    if 'maxDay' in params:
+      self.maxDay = params["maxDay"]
+      self.features = loadFeatures(self.dataset, self.name, self.years, self.days,
+                                   maxDay=self.maxDay)
+    else:
+      self.features = loadFeatures(self.dataset, self.name, self.years, self.days)
     super(Poisson, self).__init__(ripl, params)
 
   def loadAssumes(self, ripl = None):

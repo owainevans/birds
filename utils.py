@@ -16,14 +16,26 @@ def update(dict, key, data):
   
   dict[key].append(data)
 
-def readFeatures(filename):
+def readFeatures(filename,maxYear=None,maxDay=None):
   csv = loadCSV(filename)
   data = {}
   
-  for row in csv[1:]:
+  for i,row in enumerate(csv[1:]):
+
+    if maxYear and int(row[0])>maxYear:
+        print 'maxYear and stop point:',maxYear
+        print row
+        break
+
+    if maxDay and int(row[1])>maxDay:
+      print 'maxDay and stop point:',maxDay
+      print row
+      break
+      
     keys = tuple(int(k)-1 for k in row[:4])
     features = map(float, row[4:])
     data[keys] = features
+    
   
   return data
 

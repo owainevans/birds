@@ -15,7 +15,7 @@ dataset = 2
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 6 # CHANGE TO 10 from 6
+D = 8 # run inference on days 1 to (D-1)
 
 runs = 1
 
@@ -31,14 +31,16 @@ params = {
   "years":range(Y),
   "days":[],
   "hypers":hypers,
-}
+  "maxDay":D}
 
 def makePoisson():
   model = Poisson(ripl, params)
   return model
 
 if __name__ == '__main__':
+  
   model = Poisson(ripl, params)
+  
 
 
 def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
