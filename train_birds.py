@@ -117,7 +117,7 @@ def posteriorSamples(runs=10,baseDirectory=None, days=None,
   
 
   with open(baseDirectory+'posteriorRunsDump.py', 'w') as f:
-    info = 'info=%s'%infoString
+    info = 'info="""%s"""'%infoString
     logs = 'logs=%s'%posteriorLogs
     f.write(info+logs) # dump to file
 
@@ -151,7 +151,6 @@ def checkMoves(moves,no_days=5):
     print 'allMoves total for day %i: %i'%(day,sum(allMoves[day]))
   
   return allMoves
-
 
 
 
