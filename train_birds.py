@@ -85,17 +85,7 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
 
 
 
-def priorSamples(runs=4):
-  priorLogs = []
-  
-  for run_i in range(runs):
-    logs,_ = run(iterations=0)  # scores for each day before inference
-    priorLogs.append( logs ) # list of logs for iid draws from prior
 
-  with open('priorRuns.data', 'w') as f:
-    f.write(str(priorLogs) )
-
-  return priorLogs
 
 
 def posteriorSamples( baseDirectory=None,
@@ -134,14 +124,14 @@ def getMoves():
   basedir = 'getMoves_'+str(np.random.randint(10**4))+'/'
   print 'getMoves basedir:', basedir
   kwargs = dict(days=2,iterations=1,transitions=100,baseDirectory=basedir)
+  
   logs,model = run(**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
 
-  path = basedir
-  ensure(path)
-  with open(path+'moves.dat','w') as f:
-    f.wrote('moves='+bird_moves)
+  ensure(basedir)
+  with open(basedir+'moves.dat','w') as f:
+    f.write('moves='+bird_moves)
 
   return logs,model,bird_moves,bird_locs
   
