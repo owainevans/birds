@@ -15,7 +15,7 @@ dataset = 2
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 10 # CHANGE TO 10 from 6
+D = 6 # CHANGE TO 10 from 6
 
 runs = 1
 
@@ -39,7 +39,10 @@ def makePoisson():
 
 model = Poisson(ripl, params)
 
-def run(model,iterations=5, transitions=1000, baseDirectory=None):
+def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
+  if days is not None:
+    D = days
+  
   print "Starting run"
   ripl.clear()
   model.loadAssumes()
@@ -49,7 +52,6 @@ def run(model,iterations=5, transitions=1000, baseDirectory=None):
   #ripl.infer('(incorporate)') #print "Loading observations"
   #for (y, d, i, n) in observes:
   #  ripl.observe('(observe_birds %d %d %d)' % (y, d, i), n)
-  
   logs = []
   t = [time.time()] 
   
@@ -60,6 +62,7 @@ def run(model,iterations=5, transitions=1000, baseDirectory=None):
     print logs[-1]
     t[0] += dt
 
+  
   for d in range(1, D):
     print "Day %d" % d
     model.updateObserves(d)  # self.days.append(d)
@@ -95,33 +98,54 @@ def priorSamples(runs=4):
   return priorLogs
 
 
-def posteriorSamples(runs=10,iterations=5,transitions=1000):
+def posteriorSamples( baseDirectory=None,
+                     runs=10, iterations=5, transitions=1000):
+  
+  if baseDirectory is None:
+    baseDirectory = 'posteriorSamples_'+str(np.random.randint(10**4))+'/'
 
-  infoString='\n\n\n New Job: PosteriorSamples: runs=%i,iterations=%i,transitions=%i, time=%.3f\n'%(runs, iterations, transitions,time.time())
-  with open('posteriorAppend.data','a') as f:
+  infoString='''\n\n PosteriorSamples: runs=%i,iterations=%i,
+  transitions=%i, time=%.3f\n'''%(runs,iterations,transitions,time.time())
+
+  ensure(baseDirectory)
+  with open(baseDirectory+'posteriorAppend.dat','a') as f:
     f.write(infoString)
   
   posteriorLogs = []
+
   for run_i in range(runs):
-    # scores for each day before inference
-    logs,_ = run(iterations=iterations,transitions=transitions) 
+    
+    logs,_ = run(iterations=iterations,transitions=transitions,
+                 baseDirectory=baseDirectory) 
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
-    with open('posteriorAppend.data','a') as f:
-      f.write('\n'+str(run_i)+'\n logs:\n'+str(logs))
+    
+    with open(baseDirectory+'posteriorRuns.dat','a') as f:
+      f.write('\n Run #:'+str(run_i)+'\n logs:\n'+str(logs))
   
-  with open('posteriorRuns.data', 'w') as f:
+  # dump whole thing to a file
+  with open('posteriorRunsDump.dat', 'w') as f:
     f.write(infoString + str(posteriorLogs) )
 
   return posteriorLogs
 
 
+
 def getMoves():
-  basedir = 'getMoves_'+str(np.random.randint(1000))
-  logs,model = run(iterations=1,transitions=1000,baseDirectory=basedir)
+  basedir = 'getMoves_'+str(np.random.randint(10**4))
+  print 'getMoves basedir:', basedir
+  kwargs = dict(days=2,iterations=1,transitions=100,baseDirectory=basedir)
+  logs,model = run(**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
+
+  path = basedir
+  ensure(path)
+  with open(path+'moves.dat','w') as f:
+    f.wrote('moves='+bird_moves)
+
   return logs,model,bird_moves,bird_locs
   
+
 def checkMoves(moves,no_days=5):
   allMoves = {}
   for day in range(no_days):
