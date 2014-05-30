@@ -152,16 +152,13 @@ class Poisson(VentureUnit):
                                    maxDay=self.maxDay)
     else:
       self.features = loadFeatures(self.dataset, self.name, self.years, self.days)
-
-
     val_features = self.features['value']
     self.parsedFeatures = {k:_strip_types(v) for k,v in val_features.items() }
-    
-
     super(Poisson, self).__init__(ripl, params)
 
+
   def feat_i(y,d,i,feat=2):
-    'Given feature from 0 to 3 (defaults to wind), return all values i,j for fixed i'
+    'Input *feat in range(3) (default=wind), return all values i,j for fixed i'
     return [self.parsedFeatures[(y,d,i,j)][feat] for j in range(100)] 
 
 
@@ -326,6 +323,13 @@ class Poisson(VentureUnit):
     
     return bird_moves
   
+  def forceBirdMoves(self,d):
+    # currently ignore including years also
+    for i in range(self.cells):
+      for j in range(self.cells):
+        self.ripl.force('(get_birds_moving 0 %d %d %d)'%(d,i,j),
+                        self.ground[(0,d,i,j)] )
+
   def computeScoreDay(self, d):
     bird_moves = self.ripl.sample('(get_birds_moving3 %d)' % d)
     

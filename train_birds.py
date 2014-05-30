@@ -11,11 +11,11 @@ width = 10
 height = 10
 cells = width * height
 
-dataset = 3
+dataset = 2
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 8 # run inference on days 1 to (D-1)
+D = 3 # run inference on days 1 to (D-1)
 
 runs = 1
 
@@ -34,7 +34,6 @@ params = {
   "maxDay":D}
 
 
-
 def makePoisson():
   global model
   model = Poisson(ripl, params)
@@ -43,6 +42,14 @@ def makePoisson():
 if __name__ == '__main__':
   model = Poisson(ripl, params)
   
+
+def log(t,day,iteration,transitions,ripl):
+  dt = time.time() - t[0]
+  data = (day, iteration, transitions, ripl.get_global_logscore(),
+          model.computeScoreDay(model.days[-2]), dt)
+  print data
+  t[0] += dt
+  return data
 
 
 def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
@@ -53,31 +60,19 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
   model.loadAssumes()
   model.updateObserves(0)
 
-  #model.loadObserves()
-  #ripl.infer('(incorporate)') #print "Loading observations"
-  #for (y, d, i, n) in observes:
-  #  ripl.observe('(observe_birds %d %d %d)' % (y, d, i), n)
   logs = []
-  t = [time.time()] 
-  
-  def log():
-    dt = time.time() - t[0]
-    logs.append((ripl.get_global_logscore(),
-                 model.computeScoreDay(model.days[-2]), dt))
-    print logs[-1]
-    t[0] += dt
-
-
+  t = [time.time()]
   daysRange = range(1,D) if days is None else range(1,days)
+  
     
   for d in daysRange:
     print "Day %d" % d
     model.updateObserves(d)  # self.days.append(d)
-    log()
+    logs.append( log(t,d,0,transitions,ripl) )
     
     for i in range(iterations): # iterate inference (could reduce from 5)
       ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
-      log()
+      logs.append( log(t,d,i+1,transitions,ripl) )
       continue
       bird_locs = model.getBirdLocations(days=[d])
       

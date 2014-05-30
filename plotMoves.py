@@ -60,7 +60,7 @@ def plotMoves(baseDirectory='',dataset=2, detailPlot=False):
         return fig
     
     fig = makeSubplot()
-    figDetail = makeSubplot(detailPlot=True)
+    figDetail = makeSubplot(detailPlot=True) if detailPlot else None
         
     return allMoves,allMovesGround,fig
 
