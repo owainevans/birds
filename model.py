@@ -132,6 +132,8 @@ class OneBird(VentureUnit):
 
 class Poisson(VentureUnit):
 
+  
+
   def __init__(self, ripl, params):
     self.name = params['name']
     self.width = params['width']
@@ -150,7 +152,18 @@ class Poisson(VentureUnit):
                                    maxDay=self.maxDay)
     else:
       self.features = loadFeatures(self.dataset, self.name, self.years, self.days)
+
+
+    val_features = self.features['value']
+    self.parsedFeatures = {k:_strip_types(v) for k,v in val_features.items() }
+    
+
     super(Poisson, self).__init__(ripl, params)
+
+  def feat_i(y,d,i,feat=2):
+    'Given feature from 0 to 3 (defaults to wind), return all values i,j for fixed i'
+    return [self.parsedFeatures[(y,d,i,j)][feat] for j in range(100)] 
+
 
   def loadAssumes(self, ripl = None):
     if ripl is None:

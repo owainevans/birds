@@ -11,11 +11,11 @@ width = 10
 height = 10
 cells = width * height
 
-dataset = 3
+dataset = 2
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 10 # run inference on days 1 to (D-1)
+D = 11 # run inference on days 1 to (D-1)
 
 runs = 1
 
@@ -33,12 +33,14 @@ params = {
   "hypers":hypers,
   "maxDay":D}
 
+
+
 def makePoisson():
+  global model
   model = Poisson(ripl, params)
-  return model
+  
 
 if __name__ == '__main__':
-  
   model = Poisson(ripl, params)
   
 
