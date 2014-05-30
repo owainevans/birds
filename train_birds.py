@@ -52,6 +52,26 @@ def log(t,day,iteration,transitions,ripl):
   return data
 
 
+def stepThru():
+  model.loadAssumes()
+  model.updateObserves(0)
+
+  t=[time.time()]
+  logs = []
+  daysRange = range(1,D)
+
+  for d in daysRange:
+    print 'day %d'% d
+    model.updateObserves(d)
+    logs.append( log(t,d,0,10,model.ripl) )
+    yield
+
+    model.forceBirdMoves(d)
+    #model.ripl.infer(10)
+    logs.append( log(t,d,1,10,model.ripl) )
+    yield
+  
+
 def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
   
   print "\n Starting run"

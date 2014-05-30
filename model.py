@@ -325,10 +325,23 @@ class Poisson(VentureUnit):
   
   def forceBirdMoves(self,d):
     # currently ignore including years also
+    detvalues = 0
+    
     for i in range(self.cells):
       for j in range(self.cells):
-        self.ripl.force('(get_birds_moving 0 %d %d %d)'%(d,i,j),
-                        self.ground[(0,d,i,j)] )
+        ground = self.ground[(0,d,i,j)]
+        current = self.ripl.sample('(get_birds_moving 0 %d %d %d)'%(d,i,j))
+        
+        if ground>0 and current>0:
+          self.ripl.force('(get_birds_moving 0 %d %d %d)'%(d,i,j),ground)
+          print 'force: moving(0 %d %d %d) from %f to %f'%(d,i,j,current,ground)
+          
+    #     try:
+    #       self.ripl.force('(get_birds_moving 0 %d %d %d)'%(d,i,j),
+    #                       self.ground[(0,d,i,j)] )
+    #     except:
+    #       detvalues += 1
+    # print 'detvalues total =  %d'%detvalues
 
   def computeScoreDay(self, d):
     bird_moves = self.ripl.sample('(get_birds_moving3 %d)' % d)
