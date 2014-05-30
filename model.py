@@ -323,12 +323,12 @@ class Poisson(VentureUnit):
     
     return bird_moves
   
-  def forceBirdMoves(self,d):
+  def forceBirdMoves(self,d,cell_limit=100):
     # currently ignore including years also
     detvalues = 0
     
-    for i in range(self.cells):
-      for j in range(self.cells):
+    for i in range(self.cells)[:cell_limit]:
+      for j in range(self.cells)[:cell_limit]:
         ground = self.ground[(0,d,i,j)]
         current = self.ripl.sample('(get_birds_moving 0 %d %d %d)'%(d,i,j))
         

@@ -53,6 +53,7 @@ def log(t,day,iteration,transitions,ripl):
 
 
 def stepThru():
+  ripl.clear()
   model.loadAssumes()
   model.updateObserves(0)
 
