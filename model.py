@@ -221,6 +221,12 @@ class Poisson(VentureUnit):
         (if (= d 0) (if (= i 0) total_birds 0)""" +
           fold('+', '(get_birds_moving y (- d 1) __j i)', '__j', self.cells) + ")))")
     
+    # bird_movements_loc
+    # if no birds at i, no movement to any j from i
+    # normalize is normalizing constant for probms from i
+    # n is product of count at position i * normed probility of i to j
+    # return lambda that takes j and return poisson of this n
+    ## [NOTE: strings are bad, need library functions, need sq bracks for let]
     ripl.assume('bird_movements_loc', """
       (mem (lambda (y d i)
         (if (= (count_birds y d i) 0)
@@ -235,7 +241,8 @@ class Poisson(VentureUnit):
     #ripl.assume('bird_movements', '(mem (lambda (y d) %s))' % fold('array', '(bird_movements_loc y d __i)', '__i', self.cells))
     
     ripl.assume('observe_birds', '(mem (lambda (y d i) (poisson (+ (count_birds y d i) 0.0001))))')
-    
+
+    # returns number birds from i,j (we want to force this value)
     ripl.assume('get_birds_moving', """
       (lambda (y d i j)
         ((bird_movements_loc y d i) j))""")

@@ -3,7 +3,7 @@ from train_birds import checkMoves
 import matplotlib.pylab as plt
 import numpy as np
 
-def plotMoves(baseDirectory='',dataset=2):
+def plotMoves(baseDirectory='',dataset=2, detailPlot=False):
     fileName = baseDirectory + 'moves.dat'
     with open(fileName,'r') as f:
         fString = f.read()
@@ -21,18 +21,47 @@ def plotMoves(baseDirectory='',dataset=2):
     params['days'] = range(no_days)
     ground_moves = readReconstruction(params)
     allMovesGround = checkMoves(ground_moves,no_days=no_days)
+    
+    def repUnder40(lst):
+        new=[]
+        for el in lst:
+            if 0<el<40:
+                new.append(40)
+            else:
+                new.append(el)
+        return new
 
-    fig,ax = plt.subplots(no_days_run,1,figsize=(10,3*no_days_run) )
-    for i in range(no_days_run):
-        ax[i].plot(allMoves[i],label='Inferred')
-        ax[i].plot(allMovesGround[i],label='Ground')
-        ax[i].set_xlim(0,100)
-        ax[i].set_title('# Birds leaving cell on day %i'%i)
-        ax[i].set_xlabel('Cell number')
-        ax[i].set_ylabel('# birds leaving cell')
-        ax[i].legend()
+    def makeSubplot(detailPlot=False):
+        fig,ax = plt.subplots(no_days_run,1,figsize=(10,3*no_days_run) )
+        for i in range(no_days_run):
+            
+            ax[i].set_xlabel('Cell number')
+            ax[i].set_ylabel('# birds leaving cell')
+            ax[i].legend()
+            if not detailPlot:
+                ax[i].plot(allMoves[i],label='Inferred')
+                ax[i].plot(allMovesGround[i],label='Ground')
+                ax[i].set_xlim(0,100)
+                ax[i].set_title('# Birds leaving cell on day %i'%i)
+            else:
+                if dataset==2:
+                    ylim = 100
+                    ax[i].plot(allMoves[i],label='Inferred')
+                    ax[i].plot(allMovesGround[i],label='Ground')
+                else:
+                    ylim = 1000
+                    ax[i].plot( repUnder40( allMoves[i] ), label='Inferred')
+                    ax[i].plot( repUnder40( allMovesGround[i] ), label='Ground')
+                
+                ax[i].set_ylim(0,ylim)
+                ax[i].set_title('Small YLIM: outflow on day %i'%i)
+                
+        fig.tight_layout()
+        return fig
+    
+    fig = makeSubplot()
+    figDetail = makeSubplot(detailPlot=True)
         
-    fig.tight_layout()
     return allMoves,allMovesGround,fig
 
 

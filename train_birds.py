@@ -45,7 +45,7 @@ if __name__ == '__main__':
 
 def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
   
-  print "Starting run"
+  print "\n Starting run"
   print 'params:',params,'\n'
   ripl.clear()
   model.loadAssumes()
@@ -132,9 +132,10 @@ def posteriorSamples(runs=10, baseDirectory=None, days=None,
 def getMoves(days=None,transitions=1000,iterations=1,label=''):
   
   basedir = label + 'getMoves_'+str(np.random.randint(10**4))+'/'
-  print 'getMoves basedir:', basedir
-  print 'days=%s,transitions=%i,iterations=%i'%(str(days),transitions,
-                                                iterations)
+  print '====\n getMoves basedir:', basedir
+  print '\n getMoves args:'
+  print 'days=%s,transitions=%i,iterations=%i'%(str(days), transitions,iterations)
+  
   kwargs = dict(runs=1, days=days, iterations=iterations,
                 transitions=transitions,baseDirectory=basedir)
   posteriorLogs,lastModel = posteriorSamples(**kwargs)
