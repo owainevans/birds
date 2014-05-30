@@ -11,11 +11,11 @@ width = 10
 height = 10
 cells = width * height
 
-dataset = 2
+dataset = 3
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 11 # run inference on days 1 to (D-1)
+D = 8 # run inference on days 1 to (D-1)
 
 runs = 1
 
