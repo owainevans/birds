@@ -93,6 +93,7 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
     logs.append( log(t,d,0,transitions,ripl) )
     
     for i in range(iterations): # iterate inference (could reduce from 5)
+      ripl.infer('(mh hypers one 50)')
       ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
       logs.append( log(t,d,i+1,transitions,ripl) )
       continue

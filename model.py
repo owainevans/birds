@@ -174,9 +174,13 @@ class Poisson(VentureUnit):
     #ripl.assume('num_features', num_features)
 
     # we want to infer the hyperparameters of a log-linear model
-    for k, b in enumerate(self.hypers):
-      ripl.assume('hypers%d' % k,  b)
+    # for k, b in enumerate(self.hypers):
+    #   ripl.assume('hypers%d' % k,  b)
     
+    for k, prior in enumerate(self.hypers)
+      ripl.assume('hypers%d' % k,'(scope_include (quote hypers) %d %s)'%(k,
+                                                                          prior) )
+
     # the features will all be observed
     #ripl.assume('features', '(mem (lambda (y d i j k) (normal 0 1)))')
     ripl.assume('features', self.features)
