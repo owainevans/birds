@@ -15,7 +15,7 @@ dataset = 2
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 19 # run inference on days 1 to (D-1)
+D = 12 # run inference on days 1 to (D-1)
 
 runs = 1
 
@@ -41,7 +41,7 @@ def hypersInfer():
 
 
 if __name__ == '__main__':
-  #hypersInfer()
+  hypersInfer()
   model = Poisson(ripl, params)
   
 
