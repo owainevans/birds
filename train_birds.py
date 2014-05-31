@@ -36,7 +36,7 @@ params = {
 
 def hypersInfer():
   global hypers
-  hypers = ['(gamma 5 1)']*4
+  hypers = ['(gamma 7 1)']*4
   params['hypers']=hypers
 
 
@@ -93,8 +93,10 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
     logs.append( log(t,d,0,transitions,ripl) )
     
     for i in range(iterations): # iterate inference (could reduce from 5)
-      ripl.infer('(mh hypers one 50)')
-      ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
+      s='(cycle ( (mh hypers one 50) (mh %d one %d) ) 1)'%( (d-1), Y*transitions )
+      ripl.infer(s)
+
+      #ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
       logs.append( log(t,d,i+1,transitions,ripl) )
       continue
       bird_locs = model.getBirdLocations(days=[d])
