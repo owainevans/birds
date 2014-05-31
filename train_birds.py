@@ -4,24 +4,16 @@ ripl = s.make_puma_church_prime_ripl()
 
 from utils import *
 from model import Poisson, num_features
-from IPython.parallel import Client
-from IPython.parallel.util import interactive
 
-width = 10
-height = 10
-cells = width * height
+def makeModel(dataset=2, D=6, Y=1, learnHypers=True):
+  width,height = 10,10
+  cells = width * height
+  total_birds = 1000 if dataset == 2 else 1000000
+  name = "%dx%dx%d-train" % (width, height, total_birds)
+  runs = 1
+  hypers = [5, 10, 10, 10] if not learnHypers else ['(gamma 7 1)']*4
 
-dataset = 2
-total_birds = 1000 if dataset == 2 else 1000000
-name = "%dx%dx%d-train" % (width, height, total_birds)
-Y = 1
-D = 12 # run inference on days 1 to (D-1)
-
-runs = 1
-
-hypers = [5, 10, 10, 10] # these are ground truths
-
-params = {
+  params = {
   "name":name,
   "width":width,
   "height":height,
@@ -33,80 +25,66 @@ params = {
   "hypers":hypers,
   "maxDay":D}
 
+  model = Poisson(ripl,params)
 
-def hypersInfer():
-  global hypers
-  hypers = ['(gamma 7 1)']*4
-  params['hypers']=hypers
+  return model
 
-
-if __name__ == '__main__':
-  hypersInfer()
-  model = Poisson(ripl, params)
   
+def getHypers(ripl):
+  return tuple([ripl.sample('hypers%d'%i) for i in range(num_features)])
 
-def log(t,day,iteration,transitions,ripl):
+def log(t,day,iteration,transitions,model):
   dt = time.time() - t[0]
-  data = (day, iteration, transitions, ripl.get_global_logscore(),
-          model.computeScoreDay(model.days[-2]), dt)
-  print data
+  data = (day, iteration, transitions,
+          model.ripl.get_global_logscore(),
+          model.computeScoreDay(model.days[-2]),
+          getHypers(model.ripl), dt)
+  
+  print map(np.round,data)
   t[0] += dt
   return data
 
 
-def stepThru():
-  ripl.clear()
-  model.loadAssumes()
-  model.updateObserves(0)
 
-  t=[time.time()]
-  logs = []
-  daysRange = range(1,D)
-
-  for d in daysRange:
-    print 'day %d'% d
-    model.updateObserves(d)
-    logs.append( log(t,d,0,10,model.ripl) )
-    yield
-    model.forceBirdMoves(d)
-    #model.ripl.infer(10)
-    logs.append( log(t,d,1,10,model.ripl) )
-    yield
+def run(model,iterations=5, transitions=1000, baseDirectory=''):
   
-
-def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
+  learnHypers = isinstance(model.parameters['hypers'][0],str)
+  D = model.parameters['maxDay']
+  Y = max(model.parameters['years'])
+  dataset = model.parameters['dataset']
   
   print "\n Starting run"
-  print 'params:',params,'\n'
-  ripl.clear()
+  print 'params:',model.parameters,'\n'
+  model.ripl.clear()
   model.loadAssumes()
   model.updateObserves(0)
 
   logs = []
   t = [time.time()]
-  daysRange = range(1,D) if days is None else range(1,days)
   
     
-  for d in daysRange:
+  for d in range(1,D):
     print "Day %d" % d
     model.updateObserves(d)  # self.days.append(d)
-    logs.append( log(t,d,0,transitions,ripl) )
+    logs.append( log(t,d,0,transitions,model) )
     
     for i in range(iterations): # iterate inference (could reduce from 5)
-      s='(cycle ( (mh hypers one 50) (mh %d one %d) ) 1)'%( (d-1), Y*transitions )
-      ripl.infer(s)
 
-      #ripl.infer({"kernel":"mh", "scope":d-1, "block":"one", "transitions": Y*transitions})
-      logs.append( log(t,d,i+1,transitions,ripl) )
+      if learnHypers:
+        s='(cycle ((mh hypers one 50) (mh %d one %d)) 1)'%(d-1,Y*transitions)
+        model.ripl.infer(s)
+      else:
+        model.ripl.infer({"kernel":"mh", "scope":d-1,
+                          "block":"one", "transitions": Y*transitions})
+      logs.append( log(t,d,i+1,transitions,model) )
       continue
       bird_locs = model.getBirdLocations(days=[d])
       
       for y in range(Y):  # save data for each year
         path = baseDirectory+'/bird_moves%d/%d/%02d/' % (dataset, y, d)
         ensure(path)
-        drawBirds(bird_locs[y][d], path + '%02d.png' % i, **params)
+        drawBirds(bird_locs[y][d], path + '%02d.png' % i, **model.parameters)
         
-  
   model.drawBirdLocations()
 
   return logs, model
@@ -114,8 +92,7 @@ def run(days=None,iterations=5, transitions=1000, baseDirectory=''):
 
 
 
-def posteriorSamples(runs=10, baseDirectory=None, days=None,
-                      iterations=5, transitions=1000):
+def posteriorSamples(runs=10, baseDirectory=None, iterations=5, transitions=1000):
   
   if baseDirectory is None:
     baseDirectory = 'posteriorSamples_'+str(np.random.randint(10**4))+'/'
@@ -131,35 +108,30 @@ def posteriorSamples(runs=10, baseDirectory=None, days=None,
 
   for run_i in range(runs):
     
-    logs,lastModel = run(days=days,iterations=iterations,
-                         transitions=transitions,
+    logs,lastModel = run(iterations=iterations, transitions=transitions,
                          baseDirectory=baseDirectory)
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
     
     with open(baseDirectory+'posteriorRuns.dat','a') as f:
       f.write('\n Run #:'+str(run_i)+'\n logs:\n'+str(logs))
   
-
   with open(baseDirectory+'posteriorRunsDump.py', 'w') as f:
     info = 'info="""%s"""'%infoString
-    #params = '\nparams=%s'%params
     logs = '\n\nlogs=%s'%posteriorLogs
     f.write(info+logs) # dump to file
 
-    
   return posteriorLogs,lastModel
 
 
-
-def getMoves(days=None,transitions=1000,iterations=1,label=''):
+def getMoves(transitions=1000,iterations=1,label=''):
   
   basedir = label + 'getMoves_'+str(np.random.randint(10**4))+'/'
   print '====\n getMoves basedir:', basedir
   print '\n getMoves args:'
-  print 'days=%s,transitions=%i,iterations=%i'%(str(days), transitions,iterations)
+  print 'transitions=%i, iterations=%i'%(transitions,iterations)
   
-  kwargs = dict(runs=1, days=days, iterations=iterations,
-                transitions=transitions,baseDirectory=basedir)
+  kwargs = dict(runs=1, iterations=iterations, transitions=transitions,
+                baseDirectory=basedir)
   posteriorLogs,lastModel = posteriorSamples(**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
@@ -185,6 +157,24 @@ def checkMoves(moves,no_days=5):
   
   return allMoves
 
+
+
+def stepThru():
+  ripl.clear()
+  model.loadAssumes()
+  model.updateObserves(0)
+
+  t=[time.time()]
+  logs = []
+  daysRange = range(1,D)
+
+  for d in daysRange:
+    print 'day %d'% d
+    model.updateObserves(d)
+    logs.append( log(t,d,0,10,model.ripl) )
+    yield
+    model.forceBirdMoves(d)
+  
 
 
 
