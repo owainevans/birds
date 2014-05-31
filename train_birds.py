@@ -11,11 +11,11 @@ width = 10
 height = 10
 cells = width * height
 
-dataset = 3
+dataset = 2
 total_birds = 1000 if dataset == 2 else 1000000
 name = "%dx%dx%d-train" % (width, height, total_birds)
 Y = 1
-D = 6 # run inference on days 1 to (D-1)
+D = 19 # run inference on days 1 to (D-1)
 
 runs = 1
 
@@ -34,12 +34,14 @@ params = {
   "maxDay":D}
 
 
-def makePoisson():
-  global model
-  model = Poisson(ripl, params)
-  
+def hypersInfer():
+  global hypers
+  hypers = ['(gamma 5 1)']*4
+  params['hypers']=hypers
+
 
 if __name__ == '__main__':
+  #hypersInfer()
   model = Poisson(ripl, params)
   
 
@@ -66,7 +68,6 @@ def stepThru():
     model.updateObserves(d)
     logs.append( log(t,d,0,10,model.ripl) )
     yield
-
     model.forceBirdMoves(d)
     #model.ripl.infer(10)
     logs.append( log(t,d,1,10,model.ripl) )
