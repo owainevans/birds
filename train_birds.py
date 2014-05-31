@@ -40,10 +40,9 @@ def log(t,day,iteration,transitions,model):
           model.computeScoreDay(model.days[-2]),
           getHypers(model.ripl), dt)
   
-  print map(np.round,data)
+  print map(lambda ar:np.round(ar,2), data)
   t[0] += dt
   return data
-
 
 
 def run(model,iterations=5, transitions=1000, baseDirectory=''):
@@ -92,7 +91,7 @@ def run(model,iterations=5, transitions=1000, baseDirectory=''):
 
 
 
-def posteriorSamples(runs=10, baseDirectory=None, iterations=5, transitions=1000):
+def posteriorSamples(model, runs=10, baseDirectory=None, iterations=5, transitions=1000):
   
   if baseDirectory is None:
     baseDirectory = 'posteriorSamples_'+str(np.random.randint(10**4))+'/'
@@ -108,7 +107,7 @@ def posteriorSamples(runs=10, baseDirectory=None, iterations=5, transitions=1000
 
   for run_i in range(runs):
     
-    logs,lastModel = run(iterations=iterations, transitions=transitions,
+    logs,lastModel = run(model, iterations=iterations, transitions=transitions,
                          baseDirectory=baseDirectory)
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
     
@@ -123,7 +122,7 @@ def posteriorSamples(runs=10, baseDirectory=None, iterations=5, transitions=1000
   return posteriorLogs,lastModel
 
 
-def getMoves(transitions=1000,iterations=1,label=''):
+def getMoves(model,transitions=1000,iterations=1,label=''):
   
   basedir = label + 'getMoves_'+str(np.random.randint(10**4))+'/'
   print '====\n getMoves basedir:', basedir
@@ -132,7 +131,7 @@ def getMoves(transitions=1000,iterations=1,label=''):
   
   kwargs = dict(runs=1, iterations=iterations, transitions=transitions,
                 baseDirectory=basedir)
-  posteriorLogs,lastModel = posteriorSamples(**kwargs)
+  posteriorLogs,lastModel = posteriorSamples(model,**kwargs)
   bird_moves = model.getBirdMoves()
   bird_locs = model.getBirdLocations()
 
