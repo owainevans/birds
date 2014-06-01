@@ -144,6 +144,7 @@ class Poisson(VentureUnit):
     self.years = params['years']
     self.days = params['days']
     self.hypers = params["hypers"]
+    self.learnHypers = True if isinstance(self.hypers[0],str) else False
     self.ground = readReconstruction(params)
 
     if 'maxDay' in params:
@@ -174,11 +175,12 @@ class Poisson(VentureUnit):
     #ripl.assume('num_features', num_features)
 
     # we want to infer the hyperparameters of a log-linear model
-    # for k, b in enumerate(self.hypers):
-    #   ripl.assume('hypers%d' % k,  b)
-    
-    for k, prior in enumerate(self.hypers):
-      ripl.assume('hypers%d' % k,'(scope_include (quote hypers) %d %s )'%(k,
+    if not self.learnHypers:
+      for k, b in enumerate(self.hypers):
+        ripl.assume('hypers%d' % k,  b)
+    else:
+      for k, prior in enumerate(self.hypers):
+        ripl.assume('hypers%d' % k,'(scope_include (quote hypers) %d %s )'%(k,
                                                                           prior) )
 
     # the features will all be observed
