@@ -5,13 +5,13 @@ ripl = s.make_puma_church_prime_ripl()
 from utils import *
 from model import Poisson, num_features
 
-def makeModel(dataset=2, D=6, Y=1, learnHypers=True):
+def makeModel(dataset=2, D=6, Y=1, learnHypers=True, hyperPrior='(normal 0 20)'):
   width,height = 10,10
   cells = width * height
   total_birds = 1000 if dataset == 2 else 1000000
   name = "%dx%dx%d-train" % (width, height, total_birds)
   runs = 1
-  hypers = [5, 10, 10, 10] if not learnHypers else ['(gamma 7 1)']*4
+  hypers = [5, 10, 10, 10] if not learnHypers else [hyperPrior]*4
 
   params = {
   "name":name,
@@ -70,7 +70,7 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
 
   logs = []
   t = [time.time()]
-  dayToHypers = [10,10,4,1,1] + [1]*D
+  dayToHypers = [10,10,4,1,1] + [0]*D
     
   for d in range(1,D):
     print "\nDay %d" % d
@@ -80,8 +80,10 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
     for i in range(iterations): # iterate inference (could reduce from 5)
 
       if learnHypers:
-        args = (dayToHypers[d-1], d-1, (Y+1)*transitions)
-        s='(cycle ((mh hypers one %d) (mh %d one %d)) 1)'%args
+        args = (dayToHypers[d-1], dayToHypers[d-1], d-1, (Y+1)*transitions)
+        s='(cycle ((slice hypers one %d) (mh hypers one %d) (mh %d one %d)) 1)'%args
+        
+
         print 'Inf_prog = %s'%s
         model.ripl.infer(s)
 
