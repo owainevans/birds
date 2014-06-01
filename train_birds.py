@@ -46,8 +46,9 @@ def log(t,day,iteration,transitions,model):
 
 
 def run(model,iterations=5, transitions=1000, baseDirectory=''):
-  
+  assert model.parameters['years'] == []
   learnHypers = isinstance(model.parameters['hypers'][0],str)
+  print learnHypers
   D = model.parameters['maxDay']
   Y = max(model.parameters['years'])
   dataset = model.parameters['dataset']
