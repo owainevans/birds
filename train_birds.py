@@ -33,7 +33,7 @@ def makeModel(dataset=2, D=6, Y=1, learnHypers=True):
 def getHypers(ripl):
   return tuple([ripl.sample('hypers%d'%i) for i in range(num_features)])
 
-def log(t,day,iteration,transitions,model):
+def log(t,day,iteration,transitions,model,baseDirectory=None):
   dt = time.time() - t[0]
   data = (day, iteration, transitions,
           model.ripl.get_global_logscore(),
@@ -41,8 +41,16 @@ def log(t,day,iteration,transitions,model):
           getHypers(model.ripl), dt)
   
   print map(lambda ar:np.round(ar,2), data)
+  writeLog(day,data,baseDirectory)
+  
   t[0] += dt
   return data
+
+
+def writeLog(day,data,baseDirectory):
+  with open(baseDirectory+'scoreLog.dat','a') as f:
+        f.write('\nDay:%d \n'%day + str(data) )
+        
 
 
 def run(model,iterations=1, transitions=100, baseDirectory=''):
@@ -53,37 +61,37 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
   D = model.parameters['maxDay']
   Y = max(model.parameters['years'])
   dataset = model.parameters['dataset']
+  ensure(baseDirectory)
   
-  print "\n Starting run"
-  print 'params:',model.parameters,'\n'
+  print "\nStarting run. \nParams: ",model.parameters
   model.ripl.clear()
   model.loadAssumes()
   model.updateObserves(0)
 
   logs = []
   t = [time.time()]
-  
+  dayToHypers = [10,10,4,1,1] + [1]*D
     
   for d in range(1,D):
     print "\nDay %d" % d
     model.updateObserves(d)  # self.days.append(d)
-    logs.append( log(t,d,0,transitions,model) )
+    logs.append( log(t,d,0,transitions,model,baseDirectory) )
     
     for i in range(iterations): # iterate inference (could reduce from 5)
 
       if learnHypers:
-        dayToHypers = [10,10,4,1,1] + [1]*D
-        #########FIXME look at Y!!!
-        s='(cycle ((mh hypers one %d) (mh %d one %d)) 1)'%(dayToHypers[d-1],
-                                                           d-1,(Y+1)*transitions)
+        args = (dayToHypers[d-1], d-1, (Y+1)*transitions)
+        s='(cycle ((mh hypers one %d) (mh %d one %d)) 1)'%args
         print 'Inf_prog = %s'%s
         model.ripl.infer(s)
 
       else:
         model.ripl.infer({"kernel":"mh", "scope":d-1,
-                          "block":"one", "transitions": Y*transitions})
-      logs.append( log(t,d,i+1,transitions,model) )
+                          "block":"one", "transitions": (Y+1)*transitions})
+
+      logs.append( log(t,d,i+1,transitions,model,baseDirectory) )
       continue
+      
       bird_locs = model.getBirdLocations(days=[d])
       
       for y in range(Y):  # save data for each year
@@ -113,7 +121,6 @@ def posteriorSamples(model, runs=10, baseDirectory=None, iterations=5, transitio
   posteriorLogs = []
 
   for run_i in range(runs):
-    
     logs,lastModel = run(model, iterations=iterations, transitions=transitions,
                          baseDirectory=baseDirectory)
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
