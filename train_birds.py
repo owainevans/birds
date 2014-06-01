@@ -53,7 +53,7 @@ def writeLog(day,data,baseDirectory):
         
 
 
-def run(model,iterations=1, transitions=100, baseDirectory=''):
+def run(model,iterations=1, transitions=100, baseDirectory='',slice_hypers=False):
 
   assert model.parameters['days'] == []
   learnHypers = isinstance(model.parameters['hypers'][0],str)
@@ -70,7 +70,7 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
 
   logs = []
   t = [time.time()]
-  dayToHypers = [10,10,4,1,1] + [0]*D
+  dayToHypers = [10,10,4,2,1,1] + [0]*D
     
   for d in range(1,D):
     print "\nDay %d" % d
@@ -80,9 +80,11 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
     for i in range(iterations): # iterate inference (could reduce from 5)
 
       if learnHypers:
-        args = (dayToHypers[d-1], dayToHypers[d-1], d-1, (Y+1)*transitions)
-        s='(cycle ((slice hypers one %d) (mh hypers one %d) (mh %d one %d)) 1)'%args
-        
+        args = (dayToHypers[d-1], d-1, (Y+1)*transitions)
+        if slice_hypers:
+          s='(cycle ((slice hypers one %d) (mh %d one %d)) 1)'%args
+        else:
+          s='(cycle ((mh hypers one %d) (mh %d one %d)) 1)'%args
 
         print 'Inf_prog = %s'%s
         model.ripl.infer(s)
@@ -108,7 +110,7 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
 
 
 
-def posteriorSamples(model, runs=10, baseDirectory=None, iterations=5, transitions=1000):
+def posteriorSamples(model, slice_hypers=False, runs=10, baseDirectory=None, iterations=5, transitions=1000):
   
   if baseDirectory is None:
     baseDirectory = 'posteriorSamples_'+str(np.random.randint(10**4))+'/'
@@ -123,7 +125,7 @@ def posteriorSamples(model, runs=10, baseDirectory=None, iterations=5, transitio
   posteriorLogs = []
 
   for run_i in range(runs):
-    logs,lastModel = run(model, iterations=iterations, transitions=transitions,
+    logs,lastModel = run(model, slice_hypers=slice_hypers, iterations=iterations, transitions=transitions,
                          baseDirectory=baseDirectory)
     posteriorLogs.append( logs ) # list of logs for iid draws from prior
     
@@ -138,14 +140,14 @@ def posteriorSamples(model, runs=10, baseDirectory=None, iterations=5, transitio
   return posteriorLogs,lastModel
 
 
-def getMoves(model,transitions=1000,iterations=1,label=''):
+def getMoves(model,slice_hypers=False, transitions=1000,iterations=1,label=''):
   
   basedir = label + 'getMoves_'+str(np.random.randint(10**4))+'/'
   print '====\n getMoves basedir:', basedir
   print '\n getMoves args:'
   print 'transitions=%i, iterations=%i'%(transitions,iterations)
   
-  kwargs = dict(runs=1, iterations=iterations, transitions=transitions,
+  kwargs = dict(runs=1, slice_hypers=slice_hypers, iterations=iterations, transitions=transitions,
                 baseDirectory=basedir)
   posteriorLogs,lastModel = posteriorSamples(model,**kwargs)
   bird_moves = model.getBirdMoves()
