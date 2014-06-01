@@ -72,10 +72,10 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
     for i in range(iterations): # iterate inference (could reduce from 5)
 
       if learnHypers:
-        dayToHypers = [10,10,4,3,2] + [1]*D
+        dayToHypers = [10,10,4,1,1] + [1]*D
         #########FIXME look at Y!!!
         s='(cycle ((mh hypers one %d) (mh %d one %d)) 1)'%(dayToHypers[d-1],
-                                                           d-1,Y*transitions)
+                                                           d-1,(Y+1)*transitions)
         print 'Inf_prog = %s'%s
         model.ripl.infer(s)
 
