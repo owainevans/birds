@@ -73,6 +73,7 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
 
       if learnHypers:
         dayToHypers = [10,10,4,3,2] + [1]*D
+        #########FIXME look at Y!!!
         s='(cycle ((mh hypers one %d) (mh %d one %d)) 1)'%(dayToHypers[d-1],
                                                            d-1,Y*transitions)
         print 'Inf_prog = %s'%s
@@ -218,3 +219,65 @@ def sweep(r, *args):
   t2 = time.time()
   
   print "pgibbs: %f, mh: %f" % (t1-t0, t2-t1)
+
+
+
+                                                          
+
+# getMoves basedir: hypers_cfgetMoves_6881/
+
+#  getMoves args:
+# transitions=500, iterations=4
+
+#  Starting run
+# params: {'venture_random_seed': 0, 'name': '10x10x1000-train', 'hypers': ['(gamma 7 1)', '(gamma 7 1)', '(gamma 7 1)', '(gamma 7 1)'], 'cells': 100, 'days': [], 'years': [0], 'height': 10, 'width': 10, 'maxDay': 8, 'dataset': 2, 'total_birds': 1000} 
+
+# Loading assumes
+
+# Day 1
+# [1, 0, 500, -30.239999999999998, 5185.0, array([ 7.06,  3.91,  5.85,  7.85]), 4.0800000000000001]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 0 one 0)) 1)
+# [1, 1, 500, -23.390000000000001, 676.0, array([ 3.79,  3.91,  4.32,  7.85]), 7.46]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 0 one 0)) 1)
+# [1, 2, 500, -23.710000000000001, 1156.0, array([ 6.14,  5.05,  8.03,  8.48]), 7.2199999999999998]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 0 one 0)) 1)
+# [1, 3, 500, -22.579999999999998, 576.0, array([ 4.57,  5.95,  6.03,  8.48]), 7.3099999999999996]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 0 one 0)) 1)
+# [1, 4, 500, -26.170000000000002, 256.0, array([  2.29,   2.77,  10.33,   8.48]), 7.1200000000000001]
+
+# Day 2
+# [2, 0, 500, -1942.02, 659427.0, array([  2.29,   2.77,  10.33,   8.48]), 9.6999999999999993]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 1 one 0)) 1)
+# [2, 1, 500, -170.84, 5585.0, array([  4.79,   8.19,  10.33,   8.48]), 44.950000000000003]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 1 one 0)) 1)
+# [2, 2, 500, -170.84, 5585.0, array([  4.79,   8.19,  10.33,   8.48]), 76.680000000000007]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 1 one 0)) 1)
+# [2, 3, 500, -143.40000000000001, 6460.0, array([  3.8 ,   8.19,  10.33,   8.48]), 58.420000000000002]
+# Inf_prog = (cycle ((mh hypers one 10) (mh 1 one 0)) 1)
+# [2, 4, 500, -143.40000000000001, 6460.0, array([  3.8 ,   8.19,  10.33,   8.48]), 55.640000000000001]
+
+# Day 3
+# [3, 0, 500, -368.92000000000002, 9912.0, array([  3.8 ,   8.19,  10.33,   8.48]), 14.720000000000001]
+# Inf_prog = (cycle ((mh hypers one 4) (mh 2 one 0)) 1)
+# [3, 1, 500, -296.57999999999998, 8682.0, array([ 3.8 ,  8.19,  8.72,  8.48]), 116.65000000000001]
+# Inf_prog = (cycle ((mh hypers one 4) (mh 2 one 0)) 1)
+# [3, 2, 500, -296.57999999999998, 8682.0, array([ 3.8 ,  8.19,  8.72,  8.48]), 146.97]
+# Inf_prog = (cycle ((mh hypers one 4) (mh 2 one 0)) 1)
+# [3, 3, 500, -271.61000000000001, 6916.0, array([ 3.95,  8.19,  8.72,  8.48]), 127.59999999999999]
+# Inf_prog = (cycle ((mh hypers one 4) (mh 2 one 0)) 1)
+# [3, 4, 500, -271.61000000000001, 6916.0, array([ 3.95,  8.19,  8.72,  8.48]), 144.88]
+
+# Day 4
+# [4, 0, 500, -427.02999999999997, 6968.0, array([ 3.95,  8.19,  8.72,  8.48]), 17.100000000000001]
+# Inf_prog = (cycle ((mh hypers one 3) (mh 3 one 0)) 1)
+# [4, 1, 500, -427.02999999999997, 6968.0, array([ 3.95,  8.19,  8.72,  8.48]), 238.59]
+# Inf_prog = (cycle ((mh hypers one 3) (mh 3 one 0)) 1)
+# [4, 2, 500, -427.02999999999997, 6968.0, array([ 3.95,  8.19,  8.72,  8.48]), 241.06]
+# Inf_prog = (cycle ((mh hypers one 3) (mh 3 one 0)) 1)
+# [4, 3, 500, -427.02999999999997, 6968.0, array([ 3.95,  8.19,  8.72,  8.48]), 220.33000000000001]
+# Inf_prog = (cycle ((mh hypers one 3) (mh 3 one 0)) 1)
+# [4, 4, 500, -427.02999999999997, 6968.0, array([ 3.95,  8.19,  8.72,  8.48]), 279.44999999999999]
+
+# Day 5
+# [5, 0, 500, -593.26999999999998, 10229.0, array([ 3.95,  8.19,  8.72,  8.48]), 16.82]
+# Inf_prog = (cycle ((mh hypers one 2) (mh 4 one 0)) 1)
