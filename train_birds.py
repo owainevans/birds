@@ -65,7 +65,7 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
   
     
   for d in range(1,D):
-    print "Day %d" % d
+    print "\nDay %d" % d
     model.updateObserves(d)  # self.days.append(d)
     logs.append( log(t,d,0,transitions,model) )
     
@@ -73,14 +73,15 @@ def run(model,iterations=1, transitions=100, baseDirectory=''):
 
       if learnHypers:
         if d==1:
-          s='(cycle ((mh hypers one 50) (mh %d one %d)) 1)'%(d-1,Y*transitions)
+          s='(cycle ((mh hypers one 10) (mh %d one %d)) 1)'%(d-1,Y*transitions)
         elif d==2:
           s='(cycle ((mh hypers one 10) (mh %d one %d)) 1)'%(d-1,Y*transitions)
         elif d in [3,4]:
-          s='(cycle ((mh hypers one 2) (mh %d one %d)) 1)'%(d-1,Y*transitions)
+          s='(cycle ((mh hypers one 4) (mh %d one %d)) 1)'%(d-1,Y*transitions)
         else:
           s='(cycle ((mh hypers one 1) (mh %d one %d)) 1)'%(d-1,Y*transitions)
 
+          print 'Inf_prog = %s'%s
           model.ripl.infer(s)
 
       else:
