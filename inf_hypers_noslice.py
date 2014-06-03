@@ -1,10 +1,10 @@
 from train_birds import *
-priors=['(gamma .5 .05)']
-labels=['g05_005']
+priors=['(gamma 1 .1)']
+labels=['g1_01']
 for prior,label in zip(priors,labels):
     model = makeModel(dataset=2, D=3, learnHypers=True, hyperPrior=prior)
     
-    out = getMoves(model,slice_hypers=False,transitions=100,iterations=100,
+    out = getMoves(model,slice_hypers=False,transitions=(100,100,25),iterations=50,
                label='new_cycle/%s/'%label )
 
 

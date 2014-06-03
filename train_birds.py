@@ -118,8 +118,8 @@ def posteriorSamples(model, slice_hypers=False, runs=10, baseDirectory=None, ite
   if baseDirectory is None:
     baseDirectory = 'posteriorSamples_'+str(np.random.randint(10**4))+'/'
 
-  infoString='''PostSamples:runs=%i,iters=%i, transitions=%i,
-  time=%.3f\n'''%(runs,iterations,transitions,time.time())
+  infoString='''PostSamples:runs=%i,iters=%i, transitions=%s,
+  time=%.3f\n'''%(runs,iterations,str(transitions),time.time())
 
   ensure(baseDirectory)
   with open(baseDirectory+'posteriorRuns.dat','a') as f:
@@ -148,7 +148,7 @@ def getMoves(model,slice_hypers=False, transitions=1000,iterations=1,label=''):
   basedir = label + 'getMoves_'+str(np.random.randint(10**4))+'/'
   print '====\n getMoves basedir:', basedir
   print '\n getMoves args:'
-  print 'transitions=%i, iterations=%i'%(transitions,iterations)
+  print 'transitions=%s, iterations=%i'%(str(transitions),iterations)
   
   kwargs = dict(runs=1, slice_hypers=slice_hypers, iterations=iterations, transitions=transitions,
                 baseDirectory=basedir)

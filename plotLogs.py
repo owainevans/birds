@@ -1,10 +1,14 @@
+
+
+import scipy.stats
 import numpy as np
 import matplotlib.pylab as plt
 import os
 
+
 best_day_logscore = [-14.91, -98.79, -239.21]
 
-prior_val = 'ds2_long'#,'ds3'#, 'g05_005/'#, 'g1_05/'
+prior_val = 'ds3'#'ds2_long'#,'ds3'#, 'g05_005/'#, 'g1_05/'
 
 names20='''
 getMoves_2787/  getMoves_4705/  getMoves_6694/  getMoves_8212/ getMoves_3493/  getMoves_5686/  getMoves_7116/  getMoves_8748/ getMoves_3870/  getMoves_5803/  getMoves_7512/  getMoves_8986/ getMoves_4373/  getMoves_6061/  getMoves_7562/  getMoves_9108/'''
@@ -60,7 +64,7 @@ run_logscore_day_k = []; k=2
 means = []
 
 
-burn_in = 180; cut_off = 200 #min(40,allParams.shape[0])
+burn_in = 199; cut_off = 200 #min(40,allParams.shape[0])
 
     
 for name in dump_names:
@@ -85,10 +89,16 @@ for name in dump_names:
     means.append( np.mean(allParams,axis=0) )
 
     cut_allParams = allParams[burn_in:cut_off,:]
-    print 'mean:',np.round(np.mean(cut_allParams,axis=0),2)
-    print 'std:',np.round( np.std(cut_allParams,axis=0), 2)
-    print 'no_samples:',cut_allParams.shape[0]
+    #print 'mean:',
+    print np.round(np.mean(cut_allParams,axis=0),2)
+    #print 'std:',np.round( np.std(cut_allParams,axis=0), 2)
+    #print 'no_samples:',cut_allParams.shape[0]
 
+print 'sample from logs:'
+for el in logs[0:10]+logs[-10:]:
+    print map(np.round,el)
+
+print '--------\n'
 
 # very little variance after day 1, so we cut off second half
 run_length = len( run_allParams[0] )
@@ -98,7 +108,11 @@ run_logscore_day_k = [run[ burn_in: ] for run in run_logscore_day_k]
 flat_run_allParams = np.array( [line for run in run_allParams for line in run] )
 
 
-thin_flat = flat_run_allParams[ range(0,180,10), :]
+#thin_flat = flat_run_allParams[ range(0,180,10), :]
+
+final_ar = np.array([run[0] for run in run_allParams])
+print 'mean of final samples:',np.round(np.mean(final_ar,axis=0),2)
+print 'stderr of final samples:',np.round(scipy.stats.sem(final_ar,axis=0),2)
 
     
 fig,ax = plt.subplots(4, 2, figsize=(16,12))
