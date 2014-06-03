@@ -4,8 +4,7 @@ import os
 
 best_day_logscore = [-14.91, -98.79, -239.21]
 
-
-prior_val = 'g05_005/'#, 'g1_05/'
+prior_val = 'ds2_long'#,'ds3'#, 'g05_005/'#, 'g1_05/'
 
 names20='''
 getMoves_2787/  getMoves_4705/  getMoves_6694/  getMoves_8212/ getMoves_3493/  getMoves_5686/  getMoves_7116/  getMoves_8748/ getMoves_3870/  getMoves_5803/  getMoves_7512/  getMoves_8986/ getMoves_4373/  getMoves_6061/  getMoves_7562/  getMoves_9108/'''
@@ -16,6 +15,9 @@ names_g1_05 = '''getMoves_1835/  getMoves_2255/  getMoves_6905/  getMoves_8929/ 
 
 names_g05_005='''getMoves_1414/  getMoves_3889/  getMoves_6239/  getMoves_9074/ getMoves_143/   getMoves_463/   getMoves_7256/  getMoves_9219/'''
 
+names_ds3_05_005 = '''getMoves_141/   getMoves_3157/  getMoves_5010/  getMoves_7901/ getMoves_2576/  getMoves_3942/  getMoves_5591/  getMoves_8918/ getMoves_2833/  getMoves_4401/  getMoves_5878/  getMoves_9453/'''
+
+names_ds2_05_005='''getMoves_2143/  getMoves_4208/  getMoves_6265/  getMoves_9856/ getMoves_3321/  getMoves_4529/  getMoves_6329/  getMoves_9922/ getMoves_4115/  getMoves_5277/  getMoves_6467/'''
 
 if prior_val == 30:
     prior_name = 'n0_30/'
@@ -30,8 +32,17 @@ elif prior_val in ['g1_05/','g05_005/']:
     path = '/home/owainevans/birds/gamma_prior/'
     names = eval('names_'+prior_val[:-1])
     print 'Prior: ' + prior_name
-else:
-    pass
+elif prior_val in 'ds3':
+    prior_name = 'g05_005/'
+    path = '/home/owainevans/birds/ds3_long_gamma_prior/'
+    names = names_ds3_05_005
+    print 'Prior: ',prior_name+' ', prior_val
+elif prior_val in 'ds2_long':
+    prior_name = 'g05_005/'
+    path = '/home/owainevans/birds/long_gamma_prior/'
+    names = names_ds2_05_005
+    print 'Prior: ',prior_name+' ', prior_val
+
     
 
 names= names.split()
@@ -49,7 +60,9 @@ run_logscore_day_k = []; k=2
 means = []
 
 
+burn_in = 180; cut_off = 200 #min(40,allParams.shape[0])
 
+    
 for name in dump_names:
     with open(name,'r') as f: 
         dump = f.read()
@@ -71,7 +84,6 @@ for name in dump_names:
 
     means.append( np.mean(allParams,axis=0) )
 
-    burn_in = 2; cut_off = min(40,allParams.shape[0])
     cut_allParams = allParams[burn_in:cut_off,:]
     print 'mean:',np.round(np.mean(cut_allParams,axis=0),2)
     print 'std:',np.round( np.std(cut_allParams,axis=0), 2)
@@ -84,6 +96,9 @@ run_allParams = np.array( [run[ burn_in:cut_off ] for run in run_allParams] )
 run_logscore_day_k = [run[ burn_in: ] for run in run_logscore_day_k]
 
 flat_run_allParams = np.array( [line for run in run_allParams for line in run] )
+
+
+thin_flat = flat_run_allParams[ range(0,180,10), :]
 
     
 fig,ax = plt.subplots(4, 2, figsize=(16,12))
