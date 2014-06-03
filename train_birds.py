@@ -53,8 +53,11 @@ def writeLog(day,data,baseDirectory):
         
 
 
-def run(model,iterations=1, transitions=100, baseDirectory='',slice_hypers=False):
+def run(model,iterations=1, transitions=(100,50,50), baseDirectory='',slice_hypers=False):
+  day1,day2 = transitions[1],transitions[2]
+  transitions = transitions[0]
 
+  
   assert model.parameters['days'] == []
   learnHypers = isinstance(model.parameters['hypers'][0],str)
   
@@ -70,7 +73,7 @@ def run(model,iterations=1, transitions=100, baseDirectory='',slice_hypers=False
 
   logs = []
   t = [time.time()]
-  dayToHypers = [10,10,4,2,1,1] + [0]*D
+  dayToHypers = [day1,day2,4,2,1,1] + [0]*D
     
   for d in range(1,D):
     print "\nDay %d" % d
