@@ -132,8 +132,6 @@ class OneBird(VentureUnit):
 
 class Poisson(VentureUnit):
 
-  
-
   def __init__(self, ripl, params):
     self.name = params['name']
     self.width = params['width']
