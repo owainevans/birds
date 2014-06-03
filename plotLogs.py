@@ -6,7 +6,7 @@ best_day_logscore = [-14.91, -98.79, -239.21]
 
 
 Reconstruction problem writeup
-1. Poisson approximation to multinomial
+1. Poisson approximation to multinomial: Motivation
 For problems 2 and 3, we switch from a multinomial to a poisson model. For the multinomial generative model, the probability of a bird moving from i to j is a single-trial multinomial over cells j in the reachable neighborhood around j. Since bird moves are iid across birds, the probability of k birds moving i to j is given by an M-trial multinomial over cells j, where M is the number of birds at cell i (on a given day). We approximate this multinomial for moves between cells i and its reachable neighbors j with a set of independent poisson distributions, one for each pair i,j. The lambda parameter for poissoni,j = M*phi(i,j). Thus the expectation for each poisson is the same as for the multinomial. 
 
 On the poisson model, prob_move(i,j) and prob_movej+1) are independent given M and the parameters determining the unnormalized phi probabilities. Hence the number of birds moving from i (including those that move from i to i) will not always be conserved, in contrast to the multinomial model. Lack of conservation is not a problem in this setting because of our observations of bird counts. While our Poisson model will generate sequeneces of states in wich the total bird count changes substantially, such sequences will be rejected by our inference as inconsistent with observed bird counts.
@@ -15,9 +15,68 @@ Our immediate motivation for the Poisson model is to speed up inference. The mul
 
 A further extension of our approach (which is not implemented here) would be sum over the latent moves(i,j) pairs and instead just represent the inflow to a given cell. This would be a sum of the incoming independent Poissons and so also a Poisson. Thus we eliminate all but #cell latent variables, which may be a large reduction if O(#cells^2) have positive expected bird count. 
  
+
 (We could also motivate our Poisson model on theoretical grounds. If the starting bird count were unknown and assumed to be Poisson, then the multinomial transition probabilities would be identical to a set of independent Poissons as in our model. Cite: ). 
 
- 
+2. Implementation of Poisson Model in Venture
+We describe the key functions in the Venture implementation of the model. Definitions of utility functions are found in model.py (Class Poisson). 
+'''
+[assume hypers0 5]
+[assume hypers1 10]
+[assume hypers2 10]
+[assume hypers3 10]
+; these are the beta parameters. we set them to the groundtruth values. in section on parameter estimation we show how to place a prior on them. 
+
+[assume phi (mem (lambda (y d i j)
+              (if (> (cell_dist2 i j) max_dist2) 0
+                (let ((fs (lookup features (array y d i j))))
+                  (exp (+ (* hypers0 (lookup fs 0)
+                           (* hypers1 (lookup fs 1)
+                            (* hypers2 (lookup fs 2)
+                             (* hypers2 (lookup fs 3)
+                                                      ))))))))))]
+; we load the features from the given csv file
+
+
+[assume bird_movements_loc
+      (mem (lambda (y d i)
+          (let
+           ((normalize (foldl + 0 0 cells (lambda (j) (phi y d i j)))))
+            (mem (lambda (j)
+              (if (= (phi y d i j) 0) 0
+                (let ((n (* (count_birds y d i) (/ (phi y d i j) normalize))))
+                  (scope_include d (array y d i j)
+                    (poisson n))))))))))
+# even more simplified version that leaves out foldl and other stuff
+[assume bird_movements_loc
+      (mem (lambda (y d i)
+        (let
+         ((normalize (sum (map (lambda (j) (phi y d i j)) all_cells) ) )
+            (mem (lambda (j)
+              (let ((n (* (count_birds y d i) (/ (phi y d i j) normalize))))
+                  (scope_include d (array y d i j)
+                    (poisson n)))))))))]
+
+; this function specifies how the latent bird_movements from i to j are generated. we compute a normalizing constant *normalize* by summing over all phi)i.j) pairs. then for a given cell j, we generate its count bird_movements(i,j) by drawing from poisson n, where n is the total number of birds at i * the normalized probability of i,j. 
+
+
+[assume observe_birds
+          (mem (lambda (y d i) (poisson (+ (count_birds y d i) 0.0001))))')
+
+
+3. Reconstruction inference
+For the reconstruction task we implement a filtering inference program on the latent bird_moves. For a given day d, we observe all counts for day d (via the function *observe_birds* above). We then run MH only on the latent states for that day (holding fixed the values of all latent states for previous days). We implement filtering in Venture using scope annotations in the Venture program. All bird_moves(d,i,j) are included in a scope named 'd', where d is the number of the day. See definiton of bird_movements_loc, above.
+
+We then use these scopes in the inference program:
+for d in days:
+   model.updateObserves(d)  # observe_birds(d,i) for each cell i for day d  
+   model.ripl.infer('(mh d one transitions)')
+   # where transitions is a parameter we control for number of MH transitions, d is the day, 'one' specifies that we transition involves picking from all variables in scope d uniformly for the MH proposal.
+
+
+          
+
+
 
 
 
