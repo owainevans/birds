@@ -8,3 +8,16 @@ for prior,label in zip(priors,labels):
                label='ds3_block_new_cycle/%s/'%label )
 
 
+[assume phi (mem (lambda (y d i j)
+              (if (> (cell_dist2 i j) max_dist2) 0
+                (let ((fs (lookup features (array y d i j))))
+                  (exp (+ (* hypers0 (lookup fs 0))
+                          (* hypers1 (lookup fs 1))
+                          (* hypers2 (lookup fs 2))
+                          (* hypers2 (lookup fs 3)) ))))))]
+
+
+[assume phi (mem (lambda (y d i j)
+              (if (> (cell_dist2 i j) max_dist2) 0
+                (let ((fs (lookup all_features (array y d i j))))
+                  (exp (dot_product hypers fs ))))))]  
