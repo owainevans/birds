@@ -181,6 +181,7 @@ class Poisson(VentureUnit):
         ripl.assume('hypers%d' % k,'(scope_include (quote hypers) %d %s )'%(k,
                                                                           prior) )
 
+
     # the features will all be observed
     #ripl.assume('features', '(mem (lambda (y d i j k) (normal 0 1)))')
     ripl.assume('features', self.features)
@@ -213,6 +214,13 @@ class Poisson(VentureUnit):
           (let ((fs (lookup features (array y d i j))))
             (exp %s)))))"""
             % fold('+', '(* hypers__k (lookup fs __k))', '__k', num_features))
+    
+    ripl.assume('phi2', """
+      (mem (lambda (y d i j)
+        (if (> (cell_dist2 i j) max_dist2) 0
+          (let ((fs (lookup features (array y d i j))))
+            (exp %s)))))"""%'blah')
+
 
     ripl.assume('get_bird_move_dist', """
       (lambda (y d i)
