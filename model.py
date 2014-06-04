@@ -178,8 +178,8 @@ class Poisson(VentureUnit):
         ripl.assume('hypers%d' % k,  b)
     else:
       for k, prior in enumerate(self.hypers):
-        ripl.assume('hypers%d' % k,'(scope_include (quote hypers) %d %s )'%(k,
-                                                                          prior) )
+        ripl.assume('hypers%d' % k,'(scope_include (quote hypers) 0 %s )'%prior)
+                                                                         
 
     # the features will all be observed
     #ripl.assume('features', '(mem (lambda (y d i j k) (normal 0 1)))')
