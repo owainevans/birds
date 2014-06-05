@@ -102,11 +102,11 @@ def run(model,iterations=1, transitions=(100,50,50), baseDirectory='',slice_hype
       bird_locs = model.getBirdLocations(days=[d])
       
       for y in range(Y):  # save data for each year
-        path = baseDirectory+'/bird_moves%d/%d/%02d/' % (dataset, y, d)
+        #path = baseDirectory+'/bird_moves%d/%d/%02d/' % (dataset, y, d)
         ensure(path)
-        drawBirds(bird_locs[y][d], path + '%02d.png' % i, **model.parameters)
+        #drawBirds(bird_locs[y][d], path + '%02d.png' % i, **model.parameters)
         
-  model.drawBirdLocations()
+  #model.drawBirdLocations()
 
   return logs, model
 
@@ -214,11 +214,11 @@ def loadFromPrior():
 #observes = loadFromPrior()
 #true_bird_moves = getBirdMoves()
 
-import multiprocessing
-#p = multiprocessing.cpu_count() / 2
-p = 2
 
-print "Using %d particles" % p
+#p = multiprocessing.cpu_count() / 2
+
+
+
 
 def sweep(r, *args):
   t0 = time.time()
