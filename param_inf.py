@@ -1,8 +1,15 @@
-
 import scipy.stats
 from train_birds import *
 import numpy as np
 import sys
+
+## notes of dependencies:
+# makeModel from trainbirds calls Poisson and gives params (rename poisson class)
+# call getMoves, calls posteriorSamples, calls run
+# run calls ensure (from utils) 
+# log, called from run, calls writeLog, which writes to basedDirectory\
+# basedirectory comes from getMoves. should be harmless to do this write
+# as long as no absolute paths involve. 
 
 dataset = 2
 if len(sys.argv) > 1:
@@ -33,9 +40,9 @@ def writeHypers(hypers, path=None, dataset=None):
   print "Wrote parameters to " + filename
 
 
-runs = 1
-transitions = (1,1,1)
-iterations = 2
+runs = 1 # 4
+transitions = (1,1,1) # (100,100,25)
+iterations = 2 # 50
 
 allHypers = []
 
