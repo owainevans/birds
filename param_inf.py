@@ -1,5 +1,5 @@
 import scipy.stats
-from train_birds import *
+from train_birds_param import *
 import numpy as np
 import sys
 
@@ -67,5 +67,5 @@ print 'Mean parameter value across runs:', np.round(mean_parameter_values,2)
 print 'Standard Error of the Mean parameter value across runs:', scipy.stats.sem(np.array( allHypers ),axis=0)
 
 path = output_dir 
-writeHypers(mean_parameter_values,path=path,dataset=dataset)
+writeHypers(mean_parameter_values, path=path, dataset=dataset)
     

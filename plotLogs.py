@@ -1,33 +1,43 @@
-
-
 import scipy.stats
 import numpy as np
 import matplotlib.pylab as plt
 import os
 
+names_block2='''getMoves_2303/ getMoves_2370/ getMoves_2653/ getMoves_4246/ getMoves_8749/ getMoves_8903/'''
+# taken from folder 'block_new_cycle'
+
+
+# ds3 last lines from folder /ds3_block_new_cycle
+ds3_last = [(2, 49, 100, -199581.35188110976, 43794968103.0, (4.467383879543357, 2.911203977189646, 6.447483058452342, 5.8628303302623), 839.8548119068146),
+
+(2, 45, 100, -73475.48626436318, 8437297289.0, (4.351776107302161, 10.373338278652932, 12.498465342639948, 11.466293523639093), 707.5084710121155),
+
+(2, 45, 100, -112224.50737596091, 32343145702.0, (6.141136228091977, 13.541381458316987, 9.599260458211086, 12.050758722674344), 828.0552699565887),
+
+(2, 48, 100, -125757.68958976108, 37016373001.0, (4.746110174294733, 6.039233185699792, 10.22170450911841, 8.479255655363414), 752.313246011734),
+
+(2, 50, 100, -35782.6689953414, 7075125594.0, (3.6515471789366796, 9.52462050253949, 9.228424856494241, 9.098497958345822), 813.7161929607391),
+
+(2, 40, 100, -57564.35072664273, 12210610389.0, (5.017946039975852, 9.474982546933486, 12.245076231178396, 10.596232860758263), 790.5305559635162),
+
+(2, 50, 100, -47857.11439539446, 7213603130.0, (5.908934859455975, 14.18405017953044, 13.946689014838762, 13.739446990723874), 816.9821081161499), ]
+
+ds3_params = [line[-2] for line in ds3_last]
+for line in ds3_params:
+    print np.round(line,2)
+print 'DS3'
+print 'mean of final samples:',np.round(np.mean(ds3_params,axis=0),2)
+print 'std of final samples:',np.round(np.std(ds3_params,axis=0),2)
+print 'stderr of final samples:',np.round(scipy.stats.sem(ds3_params,axis=0),2)
+print 'DS3---------\n'
 
 best_day_logscore = [-14.91, -98.79, -239.21]
 
-prior_val = 'block2'#'ds2_long'#,'ds3'#, 'g05_005/'#, 'g1_05/'
+
+prior_val = 'block2'#'ds2_long'#,'ds3'#, 'g05_005/'#, 'g1_05/'    prior_name = prior_val
 
 
-names_g1_05 = '''getMoves_1835/  getMoves_2255/  getMoves_6905/  getMoves_8929/ getMoves_1857/  getMoves_2441/  getMoves_7114/  getMoves_9636/'''
-
-names_g05_005='''getMoves_1414/  getMoves_3889/  getMoves_6239/  getMoves_9074/ getMoves_143/   getMoves_463/   getMoves_7256/  getMoves_9219/'''
-
-names_ds3_05_005 = '''getMoves_141/   getMoves_3157/  getMoves_5010/  getMoves_7901/ getMoves_2576/  getMoves_3942/  getMoves_5591/  getMoves_8918/ getMoves_2833/  getMoves_4401/  getMoves_5878/  getMoves_9453/'''
-
-names_ds2_05_005='''getMoves_2143/  getMoves_4208/  getMoves_6265/  getMoves_9856/ getMoves_3321/  getMoves_4529/  getMoves_6329/  getMoves_9922/ getMoves_4115/  getMoves_5277/  getMoves_6467/'''
-
-names_block2='''getMoves_2303/  getMoves_2370/  getMoves_2653/  getMoves_4246/  getMoves_8749/  getMoves_8903/'''
-
-
-if prior_val in ['g1_05/','g05_005/']:
-    prior_name = prior_val
-    path = '/home/owainevans/birds/gamma_prior/'
-    names = eval('names_'+prior_val[:-1])
-    print 'Prior: ' + prior_name
-elif prior_val in 'ds3':
+if prior_val in 'ds3':
     prior_name = 'g05_005/'
     path = '/home/owainevans/birds/ds3_long_gamma_prior/'
     names = names_ds3_05_005
@@ -49,9 +59,6 @@ elif prior_val in 'block3':
     names = names_block3
     print 'Prior: ',prior_name+' ', prior_val
     
-#######FIXME: need to double check what's ds3 vs ds2 for block runs.
-
-
 
 burn_in = 100; cut_off = 102 #min(40,allParams.shape[0])
 print 'burn_cut',burn_in, cut_off,'\n'
@@ -72,8 +79,6 @@ means = []
 
 
 
-
-    
 for name in dump_names:
     with open(name,'r') as f: 
         dump = f.read()
