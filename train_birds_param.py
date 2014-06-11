@@ -3,7 +3,7 @@ import venture.shortcuts as s
 ripl = s.make_puma_church_prime_ripl()
 
 from utils import *
-from model import Poisson, num_features
+from model_param import Poisson, num_features
 
 def makeModel(dataset=2, D=3, Y=1, learnHypers=True, hyperPrior='(gamma 1 .1)'):
   width,height = 10,10
@@ -21,7 +21,7 @@ def makeModel(dataset=2, D=3, Y=1, learnHypers=True, hyperPrior='(gamma 1 .1)'):
   "dataset":dataset,
   "total_birds":total_birds,
   "years":range(Y),
-  "days":[],
+"days":[],
   "hypers":hypers,
   "maxDay":D}
 

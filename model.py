@@ -2,15 +2,59 @@ import venture.shortcuts as s
 from utils import *
 from venture.unit import VentureUnit
 from venture.ripl.ripl import _strip_types
+from itertools import product
 
 num_features = 4
+
+def genFeatures(years,days,width):
+  cells = width**2
+  latents = product(range(years),range(days),range(cells),range(cells))
+  
+  def within2(i,j):
+    return 0 if abs(i-j)>2 else 1
+
+  f = {}
+  for (y,d,i,j) in latents:
+    f[(y,d,i,j)] = within2(i,j),
+
+  return toVenture(f),f
+
+years,days = 1,1
+width = 3
+features,f = genFeatures(years,days,width)
+params = dict(years=years,cells=width**2,days=days,features=features,
+              name='w3')
+
+
+def make_grid(width,top1=True,lst=None):
+  l = np.array(range(width**2)) if lst is None else np.array(lst)
+  grid = l.reshape( (width,width), order='F')
+  if top1:
+    return grid
+  else:
+    grid_mat = np.zeros( shape=(width,width),dtype=int )
+    for i in range(width):
+      grid_mat[:,i] = grid[:,i][::-1]
+    return grid_mat
+
+      
+def from_i(features,feature_ind,state,width):
+  cells = width**2
+  y,d,i = state
+  l=[ features[(y,d,i,j)][feature_ind] for j in range(cells)]
+  return make_grid(width,top1=True,lst=l)
+    
+
+def day_features(features,width,y=0,d=0,summary=None):
+  lst = [features[(y,d,i,j)] for (i,j) in product(range(cells),range(cells))]
+  return lst
 
 def loadFeatures(dataset, name, years, days,maxDay=None):
   
   features_file = "data/input/dataset%d/%s-features.csv" % (dataset, name)
   print "Loading features from %s" % features_file
   
-  features = readFeatures(features_file, maxYear=max(years)+1,maxDay=maxDay)
+  features = readFeatures(features_file, maxYear= max(years)+1, maxDay=maxDay)
   
   for (y, d, i, j) in features.keys():
     if y not in years:# or d not in days:
@@ -36,7 +80,10 @@ class OneBird(VentureUnit):
     self.cells = params['cells']
     self.years = params['years']
     self.days = params['days']
-    self.features = loadFeatures(1, self.name, self.years, self.days)
+    if 'features' in params:
+      self.features = params['features']
+    else:
+      self.features = loadFeatures(1, self.name, self.years, self.days)
     super(OneBird, self).__init__(ripl, params)
   
   def loadAssumes(self, ripl = None):
