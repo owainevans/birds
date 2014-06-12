@@ -2,6 +2,7 @@ from itertools import product
 from utils import *
 from model import OneBird,Poisson
 from venture.venturemagics.ip_parallel import *
+import matplotlib.pylab as plt
 
 def l2(cell1_ij,cell2_ij ):
     return ((cell1_ij[0] - cell2_ij[0])**2 + (cell1_ij[1] - cell2_ij[1])**2)**.5
@@ -68,7 +69,7 @@ height,width = 4,4;
 features,features_dict = genFeatures(height,width,years=years,days=days,order='F')
 num_features = len( features_dict[(0,0,0,0)] )
 learnHypers = False
-hypers = 1,1
+hypers = 1,10
 
 
 params = dict(name='w2', cells=height*width, years=years, days=days,
@@ -82,6 +83,20 @@ ana = uni.getAnalytics()
 h,r = ana.runFromConditional(5,runs=1)
 
 # compare from-i and from-cell-dist
-state = (0,0,0)
-grid_from_i = { hyper: from_i(height,width, state, features_dict,hyper) for hyper in range(num_features) }
-simpl,grid_from_cell_dist = from_cell_dist( height,width,r,0,0 )
+plt.close('all')
+cells=(0,5,15)
+fig,ax = plt.subplots(len(cells),2)
+
+
+for count,cell in enumerate(cells):
+  state = (0,0,cell)
+  year,day,_ = state
+  grid_from_i = { hyper: from_i(height,width, state, features_dict,hyper) for hyper in range(num_features) }
+  simple, grid_from_cell_dist = from_cell_dist( height,width,r,cell,day,year )
+  ax[count,0].imshow(grid_from_i[0], cmap='copper',interpolation='none')
+  ax[count,0].set_title('From_i: %i, feat0'%cell)
+  ax[count,1].imshow(grid_from_cell_dist, cmap='copper',interpolation='none')
+  ax[count,1].set_title('f_cell_dist: %i'%cell)
+
+fig.tightlayout()
+plt.show()

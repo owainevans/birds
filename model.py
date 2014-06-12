@@ -105,6 +105,7 @@ class OneBird(VentureUnit):
           (scope_include (quote move) (array y d)
             (categorical dist cell_array))))""")
 
+  
 # for any day=0, bird starts at 0
     ripl.assume('get_bird_pos', """
       (mem (lambda (y d)
@@ -269,6 +270,9 @@ class Poisson(VentureUnit):
           (mem (lambda (i)
             (poisson (* n (/ (f i) normalize)))))))""")
 
+
+   
+                  
     ripl.assume('count_birds', """
       (mem (lambda (y d i)
         (if (= d 0) (if (= i 0) total_birds 0)""" +
@@ -290,6 +294,31 @@ class Poisson(VentureUnit):
                 (let ((n (* (count_birds y d i) (/ (phi y d i j) normalize))))
                   (scope_include d (array y d i j)
                     (poisson n))))))))))""")
+
+    
+
+## ADD REPEAT AND FILTER
+    # ripl.assume('multinomial_mem', """
+    #   (lambda (trials simplex)
+    #       (let ( (draws (repeat (lambda() (categorical simplex) ) ) ) )
+    #       (mem (lambda (i)
+    #          (count_instances i draws) ) ) ) )"""
+
+    # ripl.assume('count_instances',"""
+    #             (lambda (i lst) 
+    #                   (size (filter (lambda (x) (= x i)) lst) ) )""")
+
+    # ripl.assume('bird_movements_loc', """
+    #   (mem (lambda (y d i)
+    #     (if (= (count_birds y d i) 0)
+    #       (lambda (j) 0)
+    #         (let ((normalize (foldl + 0 0 cells (lambda (j) (phi y d i j)))))
+    #           (scope_include d (array y d i)
+    #             (let ( (counts (multinomial_mem (count_birds y d i) normalize)) )
+    #               (mem (lambda (j) (counts j) ) ) ) ) ) ) ) ) """ )
+    
+
+
     
     #ripl.assume('bird_movements', '(mem (lambda (y d) %s))' % fold('array', '(bird_movements_loc y d __i)', '__i', self.cells))
     
