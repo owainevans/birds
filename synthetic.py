@@ -70,11 +70,13 @@ features,features_dict = genFeatures(height,width,years=years,days=days,order='F
 num_features = len( features_dict[(0,0,0,0)] )
 learnHypers = False
 hypers = 1,10
+num_birds = 5
 
 
 params = dict(name='w2', cells=height*width, years=years, days=days,
               features = features, num_features=num_features,
               learnHypers=learnHypers, hypers=hypers,
+              num_birds = num_birds,
               load_observes_file=False)
 
 
@@ -98,5 +100,5 @@ for count,cell in enumerate(cells):
   ax[count,1].imshow(grid_from_cell_dist, cmap='copper',interpolation='none')
   ax[count,1].set_title('f_cell_dist: %i'%cell)
 
-fig.tightlayout()
+fig.tight_layout()
 plt.show()
