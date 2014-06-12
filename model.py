@@ -68,6 +68,17 @@ class OneBird(VentureUnit):
     
     print "Loading assumes"
 
+    ripl.assume('filter',"""
+      (lambda (pred lst)
+        (if (not (is_pair lst)) (list)
+          (if (pred (first lst))
+            (pair (first lst) (filter pred (rest lst)) )
+            (filter pred (rest lst)))))""")
+    ripl.assume('map',"""
+      (lambda (f lst)
+        (if (is_nil lst) (list)
+          (pair (f (first lst)) (map f (rest lst))) ) )""")
+
     if not self.learnHypers:
       for k, value_k in enumerate(self.hypers):
         ripl.assume('hypers%d' % k,  value_k)
@@ -77,14 +88,12 @@ class OneBird(VentureUnit):
         ripl.assume('hypers%d' % k, '(scope_include (quote hypers) %d (* scale (normal 0 10)))' % k)
 
     
-    #ripl.assume('features', '(mem (lambda (y d i j k) (normal 0 1)))')
     ripl.assume('features', self.features)
-
-
     ripl.assume('num_birds',self.num_birds)
+    
+    bird_ids = ' '.join(map(str,range(self.num_birds)))
+    ripl.assume('bird_ids','(list %s)'%bird_ids)
 
-    # phi is the unnormalized probability of a bird moving
-    # from cell i to cell j on day d
     ripl.assume('phi', """
       (mem (lambda (y d i j)
         (let ((fs (lookup features (array y d i j))))
@@ -97,47 +106,65 @@ class OneBird(VentureUnit):
       '))')
     
     ripl.assume('cell_array', fold('array', 'j', 'j', self.cells))
-    
-    # samples where a bird would move to from cell i on day d
-    # the bird's id is used to identify the scope
+
     ripl.assume('move', """
       (lambda (y d i)
         (let ((dist (get_bird_move_dist y d i)))
           (scope_include (quote move) (array y d)
             (categorical dist cell_array))))""")
 
-  
+    ripl.assume('move2', """
+      (mem (lambda (bird_id y d i)
+        (let ((dist (get_bird_move_dist y d i)))
+          (scope_include (quote move) (array bird_id y d i)
+            (categorical dist cell_array)))))""")
+
+
 # for any day=0, bird starts at 0
     ripl.assume('get_bird_pos', """
       (mem (lambda (y d)
         (if (= d 0) 0
           (move y (- d 1) (get_bird_pos y (- d 1))))))""")
 
+    ripl.assume('count_birds', """
+      (lambda (y d i)
+        (if (= (get_bird_pos y d) i) 1 0))""")
+
+
     ripl.assume('get_bird_pos2', """
       (mem (lambda (bird_id y d)
         (if (= d 0) 0
-          (move y (- d 1) (get_bird_pos bird_id y (- d 1))))))""")
+          (move2 bird_id y (- d 1) (get_bird_pos2 bird_id y (- d 1))))))""")
 
-    ripl.assume('count_birds', """
-      (lambda (y d i)
-        (if (= (get_bird_pos y d) i)
-          1 0))""")
+    ripl.assume('all_bird_pos',"""
+       (mem (lambda (y d) 
+         (map (lambda (bird_id) (get_bird_pos2 bird_id y d)) bird_ids)))""")
+
 
     ripl.assume('count_birds2', """
       (lambda (y d i)
-        (size 
-          (filter 
-            (lambda (bird_id) (= (get_bird_pos bird_id y d) i) )
-            bird_ids) ) ) """
+        (size (filter 
+                 (lambda (bird_id) (= i (get_bird_pos2 bird_id y d)) )
+                  bird_ids) ) ) """)
 
-    ripl.assume('filter',"""
-      (lambda (pred lst)
-        (if (not (is_pair lst)) (list)
-          (if (pred (first lst))
-            (pair (first lst) (filter pred (rest lst)) )
-            (filter pred (rest lst)))))""")
+
+    ripl.assume('count_birds22', """
+      (mem (lambda (y d i)
+        (size (filter
+                (lambda (x) (= x i)) (all_bird_pos y d)))))""" )
+
 
     ripl.assume('observe_birds', '(lambda (y d i) (poisson (+ (count_birds y d i) 0.0001)))')
+
+    ripl.assume('observe_birds2', '(lambda (y d i) (poisson (+ (count_birds2 y d i) 0.0001)))')
+
+  def get_all_positions(self,ripl,day,year=0):
+    l=[]
+    for bird_id in ripl.sample('bird_ids'):
+      l.append(ripl.sample('(get_bird_pos2 %i %i %i)'%(bird_id,year,day)))
+    return l
+
+
 
   def loadObserves(self, ripl = None):
     if ripl is None:
