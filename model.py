@@ -56,10 +56,8 @@ class OneBird(VentureUnit):
     if not self.learnHypers:
       self.hypers = params['hypers']
       
-    if 'load_observes_file' in params:
-      self.load_observes_file=params['load_observes_file']
-    else:
-      self.load_observes_file=True
+    self.load_observes_file=params.get('load_observes_file',True)
+    self.num_birds=params.get('num_birds',1)
 
     super(OneBird, self).__init__(ripl, params)
 
@@ -81,6 +79,9 @@ class OneBird(VentureUnit):
     
     #ripl.assume('features', '(mem (lambda (y d i j k) (normal 0 1)))')
     ripl.assume('features', self.features)
+
+
+    ripl.assume('num_birds',self.num_birds)
 
     # phi is the unnormalized probability of a bird moving
     # from cell i to cell j on day d
@@ -112,10 +113,29 @@ class OneBird(VentureUnit):
         (if (= d 0) 0
           (move y (- d 1) (get_bird_pos y (- d 1))))))""")
 
+    ripl.assume('get_bird_pos2', """
+      (mem (lambda (bird_id y d)
+        (if (= d 0) 0
+          (move y (- d 1) (get_bird_pos bird_id y (- d 1))))))""")
+
     ripl.assume('count_birds', """
       (lambda (y d i)
         (if (= (get_bird_pos y d) i)
           1 0))""")
+
+    ripl.assume('count_birds2', """
+      (lambda (y d i)
+        (size 
+          (filter 
+            (lambda (bird_id) (= (get_bird_pos bird_id y d) i) )
+            bird_ids) ) ) """
+
+    ripl.assume('filter',"""
+      (lambda (pred lst)
+        (if (not (is_pair lst)) (list)
+          (if (pred (first lst))
+            (pair (first lst) (filter pred (rest lst)) )
+            (filter pred (rest lst)))))""")
 
     ripl.assume('observe_birds', '(lambda (y d i) (poisson (+ (count_birds y d i) 0.0001)))')
 
@@ -269,9 +289,6 @@ class Poisson(VentureUnit):
         (let ((normalize (foldl + 0 min max f)))
           (mem (lambda (i)
             (poisson (* n (/ (f i) normalize)))))))""")
-
-
-   
                   
     ripl.assume('count_birds', """
       (mem (lambda (y d i)
