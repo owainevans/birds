@@ -5,51 +5,14 @@ from venture.ripl.ripl import _strip_types
 from itertools import product
 
 num_features = 4
-
-def genFeatures(years,days,width):
-  cells = width**2
-  latents = product(range(years),range(days),range(cells),range(cells))
-  
-  def within2(i,j):
-    return 0 if abs(i-j)>2 else 1
-
-  f = {}
-  for (y,d,i,j) in latents:
-    f[(y,d,i,j)] = within2(i,j),
-
-  return toVenture(f),f
-
-years,days = 1,1
-width = 3
-features,f = genFeatures(years,days,width)
-params = dict(years=years,cells=width**2,days=days,features=features,
-              name='w3')
-
-
-def make_grid(width,top1=True,lst=None):
-  l = np.array(range(width**2)) if lst is None else np.array(lst)
-  grid = l.reshape( (width,width), order='F')
-  if top1:
-    return grid
-  else:
-    grid_mat = np.zeros( shape=(width,width),dtype=int )
-    for i in range(width):
-      grid_mat[:,i] = grid[:,i][::-1]
-    return grid_mat
-
-      
-def from_i(features,feature_ind,state,width):
-  cells = width**2
-  y,d,i = state
-  l=[ features[(y,d,i,j)][feature_ind] for j in range(cells)]
-  return make_grid(width,top1=True,lst=l)
     
 
 def day_features(features,width,y=0,d=0,summary=None):
   lst = [features[(y,d,i,j)] for (i,j) in product(range(cells),range(cells))]
   return lst
 
-def loadFeatures(dataset, name, years, days,maxDay=None):
+
+def loadFeatures(dataset, name, years, days, maxDay=None):
   
   features_file = "data/input/dataset%d/%s-features.csv" % (dataset, name)
   print "Loading features from %s" % features_file
@@ -61,6 +24,7 @@ def loadFeatures(dataset, name, years, days,maxDay=None):
       del features[(y, d, i, j)]
   
   return toVenture(features)
+
 
 def loadObservations(ripl, dataset, name, years, days):
   observations_file = "data/input/dataset%d/%s-observations.csv" % (dataset, name)
@@ -80,11 +44,25 @@ class OneBird(VentureUnit):
     self.cells = params['cells']
     self.years = params['years']
     self.days = params['days']
+
     if 'features' in params:
       self.features = params['features']
+      self.num_features = params['num_features']
     else:
       self.features = loadFeatures(1, self.name, self.years, self.days)
+      self.num_features = num_features
+
+    self.learnHypers = params['learnHypers']
+    if not self.learnHypers:
+      self.hypers = params['hypers']
+      
+    if 'load_observes_file' in params:
+      self.load_observes_file=params['load_observes_file']
+    else:
+      self.load_observes_file=True
+
     super(OneBird, self).__init__(ripl, params)
+
   
   def loadAssumes(self, ripl = None):
     if ripl is None:
@@ -92,13 +70,15 @@ class OneBird(VentureUnit):
     
     print "Loading assumes"
 
-    # we want to infer the hyperparameters of a log-linear model
-    ripl.assume('scale', '(scope_include (quote hypers) (quote scale) (gamma 1 1))')
+    if not self.learnHypers:
+      for k, value_k in enumerate(self.hypers):
+        ripl.assume('hypers%d' % k,  value_k)
+    else:
+      for k in range(self.num_features):
+        ripl.assume('scale', '(scope_include (quote hypers) (quote scale) (gamma 1 1))')
+        ripl.assume('hypers%d' % k, '(scope_include (quote hypers) %d (* scale (normal 0 10)))' % k)
+
     
-    for k in range(num_features):
-      ripl.assume('hypers%d' % k, '(scope_include (quote hypers) %d (* scale (normal 0 10)))' % k)
-    
-    # the features will all be observed
     #ripl.assume('features', '(mem (lambda (y d i j k) (normal 0 1)))')
     ripl.assume('features', self.features)
 
@@ -108,7 +88,7 @@ class OneBird(VentureUnit):
       (mem (lambda (y d i j)
         (let ((fs (lookup features (array y d i j))))
           (exp %s))))"""
-       % fold('+', '(* hypers_k_ (lookup fs _k_))', '_k_', num_features))
+       % fold('+', '(* hypers_k_ (lookup fs _k_))', '_k_', self.num_features))
 
     ripl.assume('get_bird_move_dist',
       '(mem (lambda (y d i) ' +
@@ -125,6 +105,7 @@ class OneBird(VentureUnit):
           (scope_include (quote move) (array y d)
             (categorical dist cell_array))))""")
 
+# for any day=0, bird starts at 0
     ripl.assume('get_bird_pos', """
       (mem (lambda (y d)
         (if (= d 0) 0
@@ -175,7 +156,11 @@ class OneBird(VentureUnit):
     self.loadAssumes(ripl=self)
   
   def makeObserves(self):
-    self.loadObserves(ripl=self)
+    if self.load_observes_file:
+      self.loadObserves(ripl=self)
+    else:
+      pass
+
 
 class Poisson(VentureUnit):
 
@@ -422,4 +407,7 @@ class Poisson(VentureUnit):
       score += (infer_bird_moves[key] - self.ground[key]) ** 2
 
     return score
+
+
+
 
