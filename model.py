@@ -245,7 +245,6 @@ class OneBird(VentureUnit):
   
 
 
-
 class Poisson(VentureUnit):
 
   def __init__(self, ripl, params):
@@ -253,22 +252,30 @@ class Poisson(VentureUnit):
     self.width = params['width']
     self.height = params['height']
     self.cells = params['cells']
+    
     self.dataset = params['dataset']
     self.total_birds = params['total_birds']
     self.years = params['years']
     self.days = params['days']
     self.hypers = params["hypers"]
     self.learnHypers = True if isinstance(self.hypers[0],str) else False
-    self.ground = readReconstruction(params)
+    self.ground = readReconstruction(params) if 'ground' in params else None
+    self.maxDay = params.get('maxDay',None)
 
-    if 'maxDay' in params:
-      self.maxDay = params["maxDay"]
+    if 'features' in params:
+      self.features = params['features']
+      self.num_features = params['num_features']
+    else:
       self.features = loadFeatures(self.dataset, self.name, self.years, self.days,
                                    maxDay=self.maxDay)
-    else:
-      self.features = loadFeatures(self.dataset, self.name, self.years, self.days)
+      self.num_features = num_features
+      
+    self.load_observes_file=params.get('load_observes_file',True)
+
     val_features = self.features['value']
     self.parsedFeatures = {k:_strip_types(v) for k,v in val_features.items() }
+
+
     super(Poisson, self).__init__(ripl, params)
 
 
@@ -288,7 +295,7 @@ class Poisson(VentureUnit):
 
     #ripl.assume('num_features', num_features)
 
-    # we want to infer the hyperparameters of a log-linear model
+    
     if not self.learnHypers:
       for k, b in enumerate(self.hypers):
         ripl.assume('hypers%d' % k,  b)
@@ -297,8 +304,6 @@ class Poisson(VentureUnit):
         ripl.assume('hypers%d' % k,'(scope_include (quote hypers) 0 %s )'%prior)
         #ripl.assume('hypers%d' % k,'(scope_include (quote hypers) %d %s )'%(k,prior) )
 
-    # the features will all be observed
-    #ripl.assume('features', '(mem (lambda (y d i j k) (normal 0 1)))')
     ripl.assume('features', self.features)
 
     ripl.assume('width', self.width)
@@ -328,14 +333,8 @@ class Poisson(VentureUnit):
         (if (> (cell_dist2 i j) max_dist2) 0
           (let ((fs (lookup features (array y d i j))))
             (exp %s)))))"""
-            % fold('+', '(* hypers__k (lookup fs __k))', '__k', num_features))
+            % fold('+', '(* hypers__k (lookup fs __k))', '__k', self.num_features))
     
-    ripl.assume('phi2', """
-      (mem (lambda (y d i j)
-        (if (> (cell_dist2 i j) max_dist2) 0
-          (let ((fs (lookup features (array y d i j))))
-            (exp %s)))))"""%'blah')
-
 
     ripl.assume('get_bird_move_dist', """
       (lambda (y d i)
@@ -363,7 +362,7 @@ class Poisson(VentureUnit):
     # normalize is normalizing constant for probms from i
     # n is product of count at position i * normed probility of i to j
     # return lambda that takes j and return poisson of this n
-    ## [NOTE: strings are bad, need library functions, need sq bracks for let]
+  
     ripl.assume('bird_movements_loc', """
       (mem (lambda (y d i)
         (if (= (count_birds y d i) 0)
@@ -398,8 +397,6 @@ class Poisson(VentureUnit):
     #               (mem (lambda (j) (counts j) ) ) ) ) ) ) ) ) """ )
     
 
-
-    
     #ripl.assume('bird_movements', '(mem (lambda (y d) %s))' % fold('array', '(bird_movements_loc y d __i)', '__i', self.cells))
     
     ripl.assume('observe_birds', '(mem (lambda (y d i) (poisson (+ (count_birds y d i) 0.0001))))')
@@ -453,6 +450,7 @@ class Poisson(VentureUnit):
     
     return bird_locations
   
+
   def drawBirdLocations(self):
     bird_locs = self.getBirdLocations()
   
@@ -462,6 +460,7 @@ class Poisson(VentureUnit):
       for d in self.days:
         drawBirds(bird_locs[y][d], path + '%02d.png' % d, **self.parameters)
   
+
   def getBirdMoves(self):
     
     bird_moves = {}
