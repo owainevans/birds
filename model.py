@@ -7,6 +7,7 @@ from itertools import product
 num_features = 4
     
 
+
 def day_features(features,width,y=0,d=0,summary=None):
   lst = [features[(y,d,i,j)] for (i,j) in product(range(cells),range(cells))]
   return lst
@@ -37,6 +38,16 @@ def loadObservations(ripl, dataset, name, years, days):
         #print y, d, i
         ripl.observe('(observe_birds %d %d %d)' % (y, d, i), n)
 
+
+def drawBirdLocations(bird_locs,name,years,days,height,width):
+    for y in years:
+      path = 'bird_moves_%s/%d/' % (name, y)
+      ensure(path)
+      for d in days:
+        drawBirds(bird_locs[y][d], path+'%02d.png'%d, height=height, width=width)
+
+
+
 class OneBird(VentureUnit):
   
   def __init__(self, ripl, params):
@@ -61,6 +72,20 @@ class OneBird(VentureUnit):
 
     super(OneBird, self).__init__(ripl, params)
 
+
+# automatically load assumes onto ripl - we can later cancel this if dealing
+# with large number of features
+  def makeAssumes(self):
+    self.loadAssumes(self) # note this hackish thing where we send self and so
+    # ripl takes value self, so we use venture unit assume which is wrapper
+    # round assume and then assumes are there for analytics coz we are mutating
+    # the relevant datastructure. gnarly.
+  
+  def makeObserves(self):
+    if self.load_observes_file:
+      self.loadObserves(ripl=self)
+    else:
+      pass
   
   def loadAssumes(self, ripl = None):
     if ripl is None:
@@ -130,7 +155,9 @@ class OneBird(VentureUnit):
       (lambda (y d i)
         (if (= (get_bird_pos y d) i) 1 0))""")
 
+    ripl.assume('observe_birds', '(lambda (y d i) (poisson (+ (count_birds y d i) 0.0001)))')
 
+# multi-bird version
     ripl.assume('get_bird_pos2', """
       (mem (lambda (bird_id y d)
         (if (= d 0) 0
@@ -140,29 +167,45 @@ class OneBird(VentureUnit):
        (mem (lambda (y d) 
          (map (lambda (bird_id) (get_bird_pos2 bird_id y d)) bird_ids)))""")
 
-
     ripl.assume('count_birds2', """
       (lambda (y d i)
         (size (filter 
                  (lambda (bird_id) (= i (get_bird_pos2 bird_id y d)) )
                   bird_ids) ) ) """)
 
-
     ripl.assume('count_birds22', """
       (mem (lambda (y d i)
         (size (filter
                 (lambda (x) (= x i)) (all_bird_pos y d)))))""" )
 
-
-    ripl.assume('observe_birds', '(lambda (y d i) (poisson (+ (count_birds y d i) 0.0001)))')
-
     ripl.assume('observe_birds2', '(lambda (y d i) (poisson (+ (count_birds2 y d i) 0.0001)))')
 
-  def get_all_positions(self,ripl,day,year=0):
+  def bird_to_pos(self,day,year=0,hist=False):
     l=[]
-    for bird_id in ripl.sample('bird_ids'):
+    for bird_id in self.ripl.sample('bird_ids'):
       l.append(ripl.sample('(get_bird_pos2 %i %i %i)'%(bird_id,year,day)))
-    return l
+
+    all_bird_l = self.ripl.sample('(all_bird_pos year day)')
+    assert all( np.array(all_bird_l)==np.array(l) )
+
+    if hist:
+      hist,_ = np.histogram(l,bins=range(self.cells))
+      return hist
+    else:
+      return l
+
+
+  def getBirdLocations(self, years=None, days=None):
+    if years is None: years = self.years
+    if days is None: days = self.days
+    
+    bird_locations = {}
+    for y in years:
+      bird_locations[y] = {}
+      for d in days:
+        bird_locations[y][d] = bird_to_pos(d,year=y,hist=True)
+    
+    return bird_locations
 
 
 
@@ -200,14 +243,7 @@ class OneBird(VentureUnit):
     for block in self.unconstrained:
       ripl.infer({'kernel': 'gibbs', 'scope': 'move', 'block': block, 'transitions': 1})
   
-  def makeAssumes(self):
-    self.loadAssumes(ripl=self)
-  
-  def makeObserves(self):
-    if self.load_observes_file:
-      self.loadObserves(ripl=self)
-    else:
-      pass
+
 
 
 class Poisson(VentureUnit):
